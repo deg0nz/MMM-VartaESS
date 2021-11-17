@@ -1,0 +1,30 @@
+{
+  "name": "mmm-vartaess",
+  "version": "0.0.0",
+  "description": "MagicMirror module to show information about Varta Energy Storage Systems",
+  "main": "MMM-VartaESS.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deg0nz/MMM-VartaESS.git"
+  },
+  "keywords": [
+    "magicmirror",
+    "varta",
+    "energy",
+    "storage",
+    "system",
+    "modbus"
+  ],
+  "author": "Beh",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/deg0nz/MMM-VartaESS/issues"
+  },
+  "homepage": "https://github.com/deg0nz/MMM-VartaESS#readme",
+  "dependencies": {
+    "modbus-serial": "^8.0.5"
+  }
+}
