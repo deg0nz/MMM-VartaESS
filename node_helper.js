@@ -44,7 +44,7 @@ module.exports = NodeHelper.create({
 
 	socketNotificationReceived: async function(notification, payload) {
 		if (notification === "MMM-VartaESS_INIT") {
-            Log.info(JSON.stringify(payload));
+            console.log(JSON.stringify(payload));
             await this.init(payload);
 		}
 
