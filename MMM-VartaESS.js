@@ -33,6 +33,7 @@ Module.register("MMM-VartaESS", {
 	},
 
 	getDom: function() {
+        console.log("getDom triggered");
 		// create element wrapper for show into the module
 		const wrapper = document.createElement("div");
         const table = document.createElement("table");
@@ -98,6 +99,7 @@ Module.register("MMM-VartaESS", {
 	},
 
 	fetchData: function() {
+        console.log("Fetchdata triggered");
 		this.sendSocketNotification("MMM-VartaESS_FETCH_DATA");
 	},
 
@@ -110,6 +112,8 @@ Module.register("MMM-VartaESS", {
 
         if(notification === "MMM-VartaESS_DATA") {
             this.currentData = payload;
+            console.log(`Got data in main module: ${JSON.stringify(payload)}`);
+
             this.updateDom();
         }
 	},
