@@ -26,11 +26,11 @@ class VartaFetcher {
     constructor(config) {
         this.client = new ModbusRTU();
         // this.port = config.port;
-        this.ip = config.ip;
+        // this.ip = config.ip;
     }
 
     async connect() {
-        await this.client.connectTCP(this.ip, { port: 502 });
+        await this.client.connectTCP("192.168.200.195", { port: 502 });
         this.client.setID(1);
     }
 
