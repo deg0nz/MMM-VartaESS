@@ -44,11 +44,12 @@ module.exports = NodeHelper.create({
 
 	socketNotificationReceived: async function(notification, payload) {
 		if (notification === "MMM-VartaESS_INIT") {
-            this.init(payload);
+            Log.info(JSON.stringify(payload));
+            await this.init(payload);
 		}
 
         if(notification === "MMM-VartaESS_FETCH_DATA") {
-            this.fetchData();
+            await this.fetchData();
         }
 	},
 });

@@ -23,7 +23,7 @@ Module.register("MMM-VartaESS", {
 		//Flag for check if module is loaded
 		this.loaded = false;
 
-        this.sendSocketNotification("MMM-VartaESS_INIT", this.config)
+        this.sendSocketNotification("MMM-VartaESS_INIT", this.config);
 	},
 
 	scheduleUpdate: function() {
