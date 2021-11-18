@@ -11,7 +11,7 @@ const Registers = {
     ACTIVE_POWER: new Register(1066, 1, DataType.SINT16)
 }
 
-export const BatteryState = {
+const BatteryState = {
     BUSY: 0,    // e.g. Booting
     RUN: 1,     // ready to charge/discharge
     CHARGE: 2,
@@ -22,7 +22,7 @@ export const BatteryState = {
     ISLANDING: 7
 }
 
-export class VartaFetcher {
+class VartaFetcher {
     constructor(config) {
         this.client = new ModbusRTU();
         this.port = config.port;
@@ -49,4 +49,9 @@ export class VartaFetcher {
 
         return data;
     }
+}
+
+module.exports = {
+    BatteryState,
+    VartaFetcher
 }

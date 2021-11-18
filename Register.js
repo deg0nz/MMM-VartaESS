@@ -1,9 +1,9 @@
-export const DataType = {
+const DataType = {
     UINT16: "uint16",
     SINT16: "sint16"
 }
 
-export class Register {
+class Register {
     constructor(address, length, dataType){
         this.address = address;
         this.length = length;
@@ -25,4 +25,9 @@ export class Register {
         // Currently, all values have 16 Bit, so we can safely return this
         return output[0];
     }
+}
+
+module.exports = {
+    Register,
+    DataType
 }
