@@ -25,12 +25,12 @@ const BatteryState = {
 class VartaFetcher {
     constructor(config) {
         this.client = new ModbusRTU();
-        this.port = config.port;
+        // this.port = config.port;
         this.ip = config.ip;
     }
 
     async connect() {
-        await this.client.connectTCP(this.ip, { port: this.port });
+        await this.client.connectTCP(this.ip, { port: 502 });
         this.client.setID(1);
     }
 
