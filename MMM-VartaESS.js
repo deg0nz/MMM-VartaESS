@@ -27,6 +27,7 @@ Module.register("MMM-VartaESS", {
 	},
 
 	scheduleUpdate: function() {
+        console.log("schedule triggered")
 		setTimeout(function() {
 			this.fetchData();
 		}, this.config.updateInterval);
@@ -105,16 +106,21 @@ Module.register("MMM-VartaESS", {
 
 	// socketNotificationReceived from helper
 	socketNotificationReceived: function (notification, payload) {
-		if(notification === "MMM-VartaESS_INIT_ACK") {
-            this.loaded = true;
-            this.scheduleUpdate();
-		}
+		// if(notification === "MMM-VartaESS_INIT_ACK") {
+        //     this.loaded = true;
+        //     this.scheduleUpdate();
+		// }
 
         if(notification === "MMM-VartaESS_DATA") {
             this.currentData = payload;
             console.log(`Got data in main module: ${JSON.stringify(payload)}`);
 
             this.updateDom();
+
+            if(this.loaded === false) {
+                this.loaded = true;
+                this.scheduleUpdate();
+            }
         }
 	},
 });

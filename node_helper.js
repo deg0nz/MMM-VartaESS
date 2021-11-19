@@ -14,7 +14,8 @@ module.exports = NodeHelper.create({
     init: async function(config) {
         this.fetcher = new VartaFetcher(config);
         await this.fetcher.connect();
-        this.sendSocketNotification("MMM-VartaESS_INIT_ACK");
+        await this.fetchData();
+        console.log("Fetcher init");
     },
 
     fetchData: async function() {
