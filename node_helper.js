@@ -28,7 +28,7 @@ module.exports = NodeHelper.create({
     },
 
     processData: function(data) {
-        data.state = this.getStateString(data.state)
+        data.state = this.getBatteryStateString(data.state)
     },
 
     getBatteryStateString: function(state) {
