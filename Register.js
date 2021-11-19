@@ -14,7 +14,7 @@ class Register {
         let output;
         switch (this.dataType) {
             case DataType.UINT16:
-                output = Uint16Array.from(gpBuf);
+                output = Uint16Array.from(rawData);
                 break;
 
             case DataType.SINT16:
