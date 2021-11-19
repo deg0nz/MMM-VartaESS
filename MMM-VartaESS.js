@@ -28,7 +28,7 @@ Module.register("MMM-VartaESS", {
 
 	scheduleUpdate: function() {
         console.log("schedule triggered")
-		setTimeout(function() {
+		setInterval(function() {
 			this.fetchData();
 		}, this.config.updateInterval);
 	},
