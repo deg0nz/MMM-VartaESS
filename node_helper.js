@@ -12,9 +12,11 @@ const BatteryState = require("./VartaFetcher").BatteryState;
 module.exports = NodeHelper.create({
 
     init: async function(config) {
-        this.fetcher = new VartaFetcher(config);
-        await this.fetcher.connect();
-        await this.fetchData();
+        if(typeof this.fetcher === "undefined") {
+            this.fetcher = new VartaFetcher(config);
+            await this.fetcher.connect();
+            await this.fetchData();
+        }
         console.log("Fetcher init");
     },
 
