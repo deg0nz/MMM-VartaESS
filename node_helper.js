@@ -21,7 +21,7 @@ module.exports = NodeHelper.create({
     fetchData: async function() {
         const data = await this.fetcher.fetch();
         
-        console.log(`Got data: ${JSON.stringify(data)}`);
+        console.log(`Got data in helper: ${JSON.stringify(data)}`);
 
         const processedData = this.processData(data);
         this.sendSocketNotification("MMM-VartaESS_DATA", processedData);
@@ -29,6 +29,7 @@ module.exports = NodeHelper.create({
 
     processData: function(data) {
         data.state = this.getBatteryStateString(data.state)
+        return data;
     },
 
     getBatteryStateString: function(state) {
@@ -53,7 +54,7 @@ module.exports = NodeHelper.create({
 		}
 
         if(notification === "MMM-VartaESS_FETCH_DATA") {
-            await this.fetchData();
+            this.fetchData();
         }
 	},
 });
