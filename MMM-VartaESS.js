@@ -44,7 +44,7 @@ Module.register("MMM-VartaESS", {
         stateDescriptionColumn.textContent = "Status";
         stateRow.appendChild(stateDescriptionColumn);
         const stateValueColumn = document.createElement("td");
-        stateDescriptionColumn.textContent = this.currentData.state;
+        stateValueColumn.textContent = this.currentData.state;
         stateRow.appendChild(stateValueColumn);
         table.appendChild(stateRow);
 
@@ -53,7 +53,7 @@ Module.register("MMM-VartaESS", {
         socDescriptionColumn.textContent = "Ladung";
         socRow.appendChild(socDescriptionColumn);
         const socValueColumn = document.createElement("td");
-        socDescriptionColumn.textContent = `${this.currentData.soc} %`;
+        socValueColumn.textContent = `${this.currentData.soc} %`;
         socRow.appendChild(socValueColumn);
         table.appendChild(socRow);
 
@@ -63,7 +63,7 @@ Module.register("MMM-VartaESS", {
         gridPowerRow.appendChild(gridPowerDescriptionColumn);
         const gridPowerValueColumn = document.createElement("td");
         const gpValue = this.currentData.gridPower;
-        gridPowerDescriptionColumn.textContent = `${Math.abs(gpValue)} W (${gpValue < 0 ? "Entnahme" : "Einspeisen"})`;
+        gridPowerValueColumn.textContent = `${Math.abs(gpValue)} W (${gpValue < 0 ? "Entnahme" : "Einspeisen"})`;
         gridPowerRow.appendChild(gridPowerValueColumn);
         table.appendChild(gridPowerRow);
 
@@ -73,7 +73,7 @@ Module.register("MMM-VartaESS", {
         activePowerRow.appendChild(activePowerDescriptionColumn);
         const activePowerValueColumn = document.createElement("td");
         const apValue = this.currentData.activePower;
-        activePowerDescriptionColumn.textContent = `${Math.abs(apValue)} W (${apValue < 0 ? "Entladen" : "Laden"})`;
+        activePowerValueColumn.textContent = `${Math.abs(apValue)} W (${apValue < 0 ? "Entladen" : "Laden"})`;
         activePowerRow.appendChild(activePowerValueColumn);
         table.appendChild(activePowerRow);
 
@@ -119,7 +119,9 @@ Module.register("MMM-VartaESS", {
 
             if(this.loaded === false) {
                 this.loaded = true;
-                this.scheduleUpdate();
+                setInterval(function() {
+                    this.fetchData();
+                }, this.config.updateInterval);
             }
         }
 	},
