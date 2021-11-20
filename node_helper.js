@@ -21,7 +21,7 @@ const BatteryState = {
 }
 
 module.exports = NodeHelper.create({
-    initializeFetcher: async function(config) {
+    initialize: async function(config) {
         if(typeof this.fetcher === "undefined") {
             this.fetcher = new VartaFetcher(config);
             await this.fetcher.connect();
@@ -65,7 +65,7 @@ module.exports = NodeHelper.create({
 
 	socketNotificationReceived: function(notification, payload) {
 		if (notification === "MMM-VartaESS_INIT") {
-            this.initializeFetcher(payload);
+            this.initialize(payload);
 		}
 
         if(notification === "MMM-VartaESS_FETCH_DATA") {
