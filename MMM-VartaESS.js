@@ -20,7 +20,7 @@ Module.register("MMM-VartaESS", {
         showBatteryDisplay: true,
         kwConversionOptions: {
             enabled: true,
-            thresholdWatts: 1200,
+            threshold: 1200,
             numDecimalDigits: 2
         }
 	},
