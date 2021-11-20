@@ -1,3 +1,4 @@
+"use strict";
 const ModbusRTU = require("modbus-serial");
 const Register = require("./Register").Register;
 const DataType = require("./Register").DataType;
@@ -11,26 +12,15 @@ const Registers = {
     ACTIVE_POWER: new Register(1066, 1, DataType.SINT16)
 }
 
-const BatteryState = {
-    BUSY: 0,    // e.g. Booting
-    RUN: 1,     // ready to charge/discharge
-    CHARGE: 2,
-    DISCHARGE: 3,
-    STANDBY: 4,
-    ERROR: 5,
-    PASSIVE: 6, // Service
-    ISLANDING: 7
-}
-
 class VartaFetcher {
     constructor(config) {
         this.client = new ModbusRTU();
-        // this.port = config.port;
-        // this.ip = config.ip;
+        this.port = config.port;
+        this.ip = config.ip;
     }
 
     async connect() {
-        await this.client.connectTCP("192.168.200.195", { port: 502 });
+        await this.client.connectTCP(this.ip, { port: this.port });
         this.client.setID(1);
     }
 
@@ -51,7 +41,4 @@ class VartaFetcher {
     }
 }
 
-module.exports = {
-    BatteryState,
-    VartaFetcher
-}
+module.exports = VartaFetcher;

@@ -1,4 +1,19 @@
 {
   "TITLE": "Titel",
-  "UPDATE": "Update"
+  "UPDATE": "Update",
+  "LOADING": "Laden",
+  "STATE": "Status",
+  "CHARGE": "Ladung",
+  "BATTERY": "Batterie",
+  "GRID": "Stromnetz",
+  "CONSUMPTION_FROM_GRID": "Entnahme",
+  "BACKFEED_TO_GRID": "Einspeisen", 
+  "BATTERY_BUSY": "Nicht bereit",
+  "BATTERY_RUN": "Bereit",
+  "BATTERY_CHARGE": "Laden",
+  "BATTERY_DISCHARGE": "Entladen",
+  "BATTERY_STANDBY": "Standby",
+  "BATTERY_ERROR": "Fehler",
+  "BATTERY_PASSIVE": "Service",
+  "BATTERY_ISLANDING": "Inselmodus"
 }

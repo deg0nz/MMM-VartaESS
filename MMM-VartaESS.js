@@ -1,3 +1,4 @@
+"use strict";
 /* global Module */
 
 /* Magic Mirror
@@ -9,6 +10,9 @@
 
 Module.register("MMM-VartaESS", {
 	defaults: {
+        name: "MMM-VartaESS",
+        header: "Varta Energy Storage",
+        hidden: false,
         ip: "192.168.200.195",
         port: 502,
 		updateInterval: 3000
@@ -17,46 +21,50 @@ Module.register("MMM-VartaESS", {
 	requiresVersion: "2.1.0", // Required version of MagicMirror
 
 	start: function() {
+        this.data.header = this.config.header;
 		this.currentData = null;
-
-		//Flag for check if module is loaded
 		this.loaded = false;
 
         this.sendSocketNotification("MMM-VartaESS_INIT", this.config);
 
-        setInterval(function() {
-            console.log("Interval")
-            if(this.loaded === true) {
-                this.fetchData();
-            }
-        }, this.config.updateInterval);
+        Log.info("MMM-VartaESS started.")
 	},
 
-	// scheduleUpdate: function() {
-    //     console.log("schedule triggered")
-	// 	setInterval(function() {
-	// 		this.fetchData();
-	// 	}, this.config.updateInterval);
-	// },
+	scheduleUpdate: function() {
+		setInterval(() => {
+			this.sendSocketNotification("MMM-VartaESS_FETCH_DATA");
+		}, this.config.updateInterval);
+	},
 
 	getDom: function() {
-        console.log("getDom triggered");
 		// create element wrapper for show into the module
 		const wrapper = document.createElement("div");
+        wrapper.id = "vartaess-wrapper";
+
+        if(this.currentData === null && !this.loaded) {
+            wrapper.innerHTML = `${this.translate("LOADING")}...`;
+            wrapper.className = "small light dimmed";
+            return wrapper;
+        }
+            
+        const batteryWrapper = document.createElement("div");
+        batteryWrapper.id = "battery-wrapper";
+
+        // Table for displaying Values
         const table = document.createElement("table");
 
         const stateRow = document.createElement("tr");
         const stateDescriptionColumn = document.createElement("td");
-        stateDescriptionColumn.textContent = "Status:";
+        stateDescriptionColumn.textContent = `${this.translate("STATE")}:`;
         stateRow.appendChild(stateDescriptionColumn);
         const stateValueColumn = document.createElement("td");
-        stateValueColumn.textContent = this.currentData.state;
+        stateValueColumn.textContent = this.translate(this.currentData.state);
         stateRow.appendChild(stateValueColumn);
         table.appendChild(stateRow);
 
         const socRow = document.createElement("tr");
         const socDescriptionColumn = document.createElement("td");
-        socDescriptionColumn.textContent = "Ladung:";
+        socDescriptionColumn.textContent = `${this.translate("CHARGE")}:`;
         socRow.appendChild(socDescriptionColumn);
         const socValueColumn = document.createElement("td");
         socValueColumn.textContent = `${this.currentData.soc} %`;
@@ -65,21 +73,25 @@ Module.register("MMM-VartaESS", {
 
         const gridPowerRow = document.createElement("tr");
         const gridPowerDescriptionColumn = document.createElement("td");
-        gridPowerDescriptionColumn.textContent = "Stromnetz: ";
+        gridPowerDescriptionColumn.textContent = `${this.translate("GRID")}: `;
         gridPowerRow.appendChild(gridPowerDescriptionColumn);
         const gridPowerValueColumn = document.createElement("td");
         const gpValue = this.currentData.gridPower;
-        gridPowerValueColumn.textContent = `${Math.abs(gpValue)} W (${gpValue < 0 ? "Entnahme" : "Einspeisen"})`;
+        gridPowerValueColumn.textContent = `${Math.abs(gpValue)} W (${gpValue < 0 ? this.translate("CONSUMPTION_FROM_GRID") : this.translate("BACKFEED_TO_GRID")})`;
         gridPowerRow.appendChild(gridPowerValueColumn);
         table.appendChild(gridPowerRow);
 
         const activePowerRow = document.createElement("tr");
         const activePowerDescriptionColumn = document.createElement("td");
-        activePowerDescriptionColumn.textContent = "Batterie:";
+        activePowerDescriptionColumn.textContent = `${this.translate("BATTERY")}:`;
         activePowerRow.appendChild(activePowerDescriptionColumn);
         const activePowerValueColumn = document.createElement("td");
         const apValue = this.currentData.activePower;
-        activePowerValueColumn.textContent = `${Math.abs(apValue)} W (${apValue < 0 ? "Entladen" : "Laden"})`;
+        let batteryChargingStateLabel = "";
+        if(apValue !== 0) {
+            batteryChargingStateLabel = ` (${apValue < 0 ? this.translate("BATTERY_DISCHARGE") : this.translate("BATTERY_CHARGE")})`;
+        }
+        activePowerValueColumn.textContent = `${Math.abs(apValue)} W${batteryChargingStateLabel}`;
         activePowerRow.appendChild(activePowerValueColumn);
         table.appendChild(activePowerRow);
 
@@ -105,26 +117,15 @@ Module.register("MMM-VartaESS", {
 		};
 	},
 
-	fetchData: function() {
-        console.log("Fetchdata triggered");
-		this.sendSocketNotification("MMM-VartaESS_FETCH_DATA");
-	},
-
 	// socketNotificationReceived from helper
 	socketNotificationReceived: function (notification, payload) {
-		// if(notification === "MMM-VartaESS_INIT_ACK") {
-        //     this.loaded = true;
-        //     this.scheduleUpdate();
-		// }
+		if(notification === "MMM-VartaESS_INITIALIZED") {
+            this.loaded = true;
+            this.scheduleUpdate();
+		}
 
         if(notification === "MMM-VartaESS_DATA") {
-            if(this.loaded === false) {
-                this.loaded = true;
-            }
-
             this.currentData = payload;
-            console.log(`Got data in main module: ${JSON.stringify(payload)}`);
-
             this.updateDom();
         }
 	},

@@ -1,3 +1,4 @@
+"use strict";
 /* Magic Mirror
  * Node Helper: MMM-VartaESS
  *
@@ -6,25 +7,30 @@
  */
 
 const NodeHelper = require("node_helper");
-const VartaFetcher = require("./VartaFetcher").VartaFetcher;
-const BatteryState = require("./VartaFetcher").BatteryState;
+const VartaFetcher = require("./VartaFetcher");
+
+const BatteryState = {
+    BUSY: 0,    // e.g. Booting
+    RUN: 1,     // ready to charge/discharge
+    CHARGE: 2,
+    DISCHARGE: 3,
+    STANDBY: 4,
+    ERROR: 5,
+    PASSIVE: 6, // Service
+    ISLANDING: 7
+}
 
 module.exports = NodeHelper.create({
-
-    init: async function(config) {
+    initializeFetcher: async function(config) {
         if(typeof this.fetcher === "undefined") {
             this.fetcher = new VartaFetcher(config);
             await this.fetcher.connect();
-            await this.fetchData();
+            this.sendSocketNotification("MMM-VartaESS_INITIALIZED");
         }
-        console.log("Fetcher init");
     },
 
     fetchData: async function() {
         const data = await this.fetcher.fetch();
-        
-        console.log(`Got data in helper: ${JSON.stringify(data)}`);
-
         const processedData = this.processData(data);
         this.sendSocketNotification("MMM-VartaESS_DATA", processedData);
     },
@@ -36,23 +42,30 @@ module.exports = NodeHelper.create({
 
     getBatteryStateString: function(state) {
         switch (state) {
-            case BatteryState.STANDBY:
-                return "Standby"
-            case BatteryState.CHARGE:
-                return "Laden"
-            case BatteryState.DISCHARGE:
-                return "Entladen"
+            case BatteryState.BUSY:
+                return "BATTERY_BUSY";
             case BatteryState.RUN:
-                return "ready"
+                return "BATTERY_RUN";
+            case BatteryState.CHARGE:
+                return "BATTERY_CHARGE";
+            case BatteryState.DISCHARGE:
+                return "BATTERY_DISCHARGE";
+            case BatteryState.STANDBY:
+                return "BATTERY_STANDBY";
+            case BatteryState.ERROR:
+                return "BATTERY_ERROR";
+            case BatteryState.PASSIVE:
+                return "BATTERY_PASSIVE";
+            case BatteryState.ISLANDING:
+                return "BATTERY_ISLANDING";
             default:
-                return "Unbekannter Status"
+                return "UNKOWN_STATE";
         }
     },
 
-	socketNotificationReceived: async function(notification, payload) {
+	socketNotificationReceived: function(notification, payload) {
 		if (notification === "MMM-VartaESS_INIT") {
-            console.log(JSON.stringify(payload));
-            await this.init(payload);
+            this.initializeFetcher(payload);
 		}
 
         if(notification === "MMM-VartaESS_FETCH_DATA") {

@@ -1,4 +1,19 @@
 {
   "TITLE": "Title",
-  "UPDATE": "Update"
+  "UPDATE": "Update",
+  "LOADING": "Loading",
+  "STATE": "Status",
+  "CHARGE": "Charge",
+  "BATTERY": "Battery",
+  "GRID": "Grid",
+  "CONSUMPTION_FROM_GRID": "Consuming",
+  "BACKFEED_TO_GRID": "Backfeeding", 
+  "BATTERY_BUSY": "Busy",
+  "BATTERY_RUN": "Ready",
+  "BATTERY_CHARGE": "Charging",
+  "BATTERY_DISCHARGE": "Discharging",
+  "BATTERY_STANDBY": "Standby",
+  "BATTERY_ERROR": "Error",
+  "BATTERY_PASSIVE": "Service",
+  "BATTERY_ISLANDING": "Islanding"
 }
