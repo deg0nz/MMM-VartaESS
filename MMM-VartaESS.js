@@ -129,10 +129,10 @@ Module.register("MMM-VartaESS", {
         const maxWidth = wrapperWidth - 18; // Dunno, why 18 seems to look light. 1px got lost somewhere, maybe while rounding
         const factor = this.currentData.soc / 100;
         const width = Math.round(maxWidth * factor);
-
-        Log.info(`Module width: ${this.config.width} | wrapper width: ${wrapperWidth} | width: ${width} | maxWidth: ${maxWidth} | factor: ${factor}`);
-
         batteryState.style.width = `${width}px`;
+
+        // We  will leave this here for debugging
+        // Log.info(`Module width: ${this.config.width} | wrapper width: ${wrapperWidth} | width: ${width} | maxWidth: ${maxWidth} | factor: ${factor}`);
 
         batteryWrapper.appendChild(batteryState);
 
