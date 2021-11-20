@@ -15,7 +15,14 @@ Module.register("MMM-VartaESS", {
         hidden: false,
         ip: "192.168.200.195",
         port: 502,
-		updateInterval: 3000
+		updateInterval: 3000,
+        width: 250,
+        showBatteryDisplay: true,
+        kwConversionOptions: {
+            enabled: true,
+            thresholdWatts: 1200,
+            numDecimalDigits: 2
+        }
 	},
 
 	requiresVersion: "2.1.0", // Required version of MagicMirror
@@ -40,64 +47,105 @@ Module.register("MMM-VartaESS", {
 		// create element wrapper for show into the module
 		const wrapper = document.createElement("div");
         wrapper.id = "vartaess-wrapper";
+        wrapper.style.width = `${this.config.width}px`;
 
         if(this.currentData === null && !this.loaded) {
-            wrapper.innerHTML = `${this.translate("LOADING")}...`;
             wrapper.className = "small light dimmed";
+            wrapper.innerHTML = `${this.translate("LOADING")}...`;
             return wrapper;
         }
-            
-        const batteryWrapper = document.createElement("div");
-        batteryWrapper.id = "battery-wrapper";
 
+        // Battery
+        if(this.config.showBatteryDisplay) {
+            const batteryDisplay = this.getBatteryDisplay();
+            wrapper.appendChild(batteryDisplay);
+        }
+        
         // Table for displaying Values
+        const tableWrapper = document.createElement("div");
+        tableWrapper.id = "table-wrapper";
+        const table = this.generateDataTable();
+        tableWrapper.appendChild(table);
+
+        wrapper.appendChild(tableWrapper);
+
+		return wrapper;
+	},
+
+    generateDataTable: function() {
         const table = document.createElement("table");
 
-        const stateRow = document.createElement("tr");
-        const stateDescriptionColumn = document.createElement("td");
-        stateDescriptionColumn.textContent = `${this.translate("STATE")}:`;
-        stateRow.appendChild(stateDescriptionColumn);
-        const stateValueColumn = document.createElement("td");
-        stateValueColumn.textContent = this.translate(this.currentData.state);
-        stateRow.appendChild(stateValueColumn);
-        table.appendChild(stateRow);
+        const stateDescription = `${this.translate("STATE")}:`;
+        const stateValue = this.translate(this.currentData.state);
+        this.appendTableRow(stateDescription, stateValue, table);
 
-        const socRow = document.createElement("tr");
-        const socDescriptionColumn = document.createElement("td");
-        socDescriptionColumn.textContent = `${this.translate("CHARGE")}:`;
-        socRow.appendChild(socDescriptionColumn);
-        const socValueColumn = document.createElement("td");
-        socValueColumn.textContent = `${this.currentData.soc} %`;
-        socRow.appendChild(socValueColumn);
-        table.appendChild(socRow);
+        const socDescription = `${this.translate("CHARGE")}:`
+        const socValue = `${this.currentData.soc} %`;
+        this.appendTableRow(socDescription, socValue, table);
 
-        const gridPowerRow = document.createElement("tr");
-        const gridPowerDescriptionColumn = document.createElement("td");
-        gridPowerDescriptionColumn.textContent = `${this.translate("GRID")}: `;
-        gridPowerRow.appendChild(gridPowerDescriptionColumn);
-        const gridPowerValueColumn = document.createElement("td");
+        const gridPowerDescription = `${this.translate("GRID")}: `;
         const gpValue = this.currentData.gridPower;
-        gridPowerValueColumn.textContent = `${Math.abs(gpValue)} W (${gpValue < 0 ? this.translate("CONSUMPTION_FROM_GRID") : this.translate("BACKFEED_TO_GRID")})`;
-        gridPowerRow.appendChild(gridPowerValueColumn);
-        table.appendChild(gridPowerRow);
+        const gridPowerValue = `${this.getWattString(Math.abs(gpValue))} (${gpValue < 0 ? this.translate("CONSUMPTION_FROM_GRID") : this.translate("BACKFEED_TO_GRID")})`;
+        this.appendTableRow(gridPowerDescription, gridPowerValue, table);
 
-        const activePowerRow = document.createElement("tr");
-        const activePowerDescriptionColumn = document.createElement("td");
-        activePowerDescriptionColumn.textContent = `${this.translate("BATTERY")}:`;
-        activePowerRow.appendChild(activePowerDescriptionColumn);
-        const activePowerValueColumn = document.createElement("td");
-        const apValue = this.currentData.activePower;
+        const activePowerDescription = `${this.translate("BATTERY")}:`;
         let batteryChargingStateLabel = "";
+        const apValue = this.currentData.activePower;
         if(apValue !== 0) {
             batteryChargingStateLabel = ` (${apValue < 0 ? this.translate("BATTERY_DISCHARGE") : this.translate("BATTERY_CHARGE")})`;
         }
-        activePowerValueColumn.textContent = `${Math.abs(apValue)} W${batteryChargingStateLabel}`;
-        activePowerRow.appendChild(activePowerValueColumn);
-        table.appendChild(activePowerRow);
+        const activePowerValue = `${this.getWattString(Math.abs(apValue))}${batteryChargingStateLabel}`;
+        this.appendTableRow(activePowerDescription, activePowerValue, table);
 
-        wrapper.appendChild(table);
-		return wrapper;
-	},
+        return table;
+    },
+
+    appendTableRow: function(description, value, table) {
+        const row = document.createElement("tr");
+
+        const descriptionColumn = document.createElement("td");
+        descriptionColumn.textContent = description;
+        row.appendChild(descriptionColumn);
+
+        const valueColumn = document.createElement("td");
+        valueColumn.textContent = value;
+        row.appendChild(valueColumn);
+
+        table.appendChild(row);
+    },
+
+    getBatteryDisplay: function() {
+        const batteryWrapper = document.createElement("div");
+        batteryWrapper.id = "battery-wrapper";
+        // Battery should have 90% of module width
+        const wrapperWidth = Math.round(this.config.width * 0.9);
+        batteryWrapper.style.width = `${Math.round(this.config.width * 0.9)}px`;
+
+        const batteryState = document.createElement("div");
+        batteryState.id = "battery-state";
+
+        // Internal display should also be 10px narrower than battery to conserver internal border
+        const maxWidth = wrapperWidth - 10;
+        const factor = this.currentData.soc / 100;
+        const width = Math.round(maxWidth * factor);
+
+        Log.info(`Module width: ${this.config.width} | wrapper width: ${wrapperWidth} | width: ${width} | maxWidth: ${maxWidth} | factor: ${factor}`);
+
+        batteryState.style.width = `${width}px`;
+
+        batteryWrapper.appendChild(batteryState);
+
+        return batteryWrapper;
+    },
+
+    getWattString: function(value) {
+        const kwConversionOptions = this.config.kwConversionOptions;
+        if (kwConversionOptions.enabled && (value > kwConversionOptions.threshold)) {
+            return `${(value / 1000).toFixed(kwConversionOptions.numDecimalDigits)} kW`;
+        }
+
+        return `${value} W`;
+    }, 
 
 	getScripts: function() {
 		return [];

@@ -1,59 +1,52 @@
    /* Battery example from https://codepen.io/nonggolf/pen/gOOvEeK */
-   
+
    #vartaess-wrapper {
     font-size: 22px;
     font-weight: normal;
     line-height: 1.5;
-    display: flex;
+    display: block;
     box-sizing: border-box !important;
+    width: 250px;
   }
   
-  .battery-wrapper {
+  #battery-wrapper {
     margin: 0;
     padding: 0;
     box-sizing: inherit;
-    max-width: 150px;
-    width: 100%;
+    width: 90%;
     height: 60px;
-    border: 4px solid rgb(236, 39, 72);
+    border: 4px solid rgb(200, 39, 72);
     border-radius: 5px;
     position: relative;
-    cursor: pointer;
+    left: 50%;
+    transform: translateX(-50%);
   }
   
-  .battery-wrapper::before {
+  #battery-wrapper::before {
     content: '';
     position: absolute;
     width: 8px;
     height: 16px;
-    background: rgb(236, 39, 72);
+    background: rgb(200, 39, 72);
     right: -9px;
     top: 50%;
     margin-top: -8px;
     border-radius: 2px;
   }
   
-  .battery-wrapper::after {
+  #battery-state {
     content: '';
-    position: absolute;
+    position: relative;
     top: 5px;
     bottom: 5px;
     left: 5px;
-    /* right: 10px; */
-    background: rgb(236, 39, 72);
-    transition: all .3s;
-    -webkit-animation: charging 2s steps(1) infinite;
-    -moz-animation: charging 2s steps(1) infinite;
-    animation: charging 2s steps(1) infinite;
-    animation: charging 2s steps(1) infinite;
-    animation-play-state: paused;
+    right: 5px;
+    background: rgb(200, 39, 72);
+    height: 80%;
+    width: 50%;
   }
- 
-  @keyframes charging {
-    from {
-      width: 20%;
-    } 
-    to {
+
+  #table-wrapper {
+      margin-top: 10px;
       width: 100%;
-    }
   }
