@@ -119,13 +119,14 @@ Module.register("MMM-VartaESS", {
         batteryWrapper.id = "battery-wrapper";
         // Battery should have 90% of module width
         const wrapperWidth = Math.round(this.config.width * 0.9);
-        batteryWrapper.style.width = `${Math.round(this.config.width * 0.9)}px`;
+        batteryWrapper.style.width = `${wrapperWidth}px`;
 
         const batteryState = document.createElement("div");
         batteryState.id = "battery-state";
 
-        // Internal display should also be 10px narrower than battery to conserver internal border
-        const maxWidth = wrapperWidth - 10;
+        // Internal display should also narrower than battery to preserve internal border
+        // Calculation from right: 8px "battery nose" + 4px border + 5px internal border = 17px
+        const maxWidth = wrapperWidth - 18; // Dunno, why 18 seems to look light. 1px got lost somewhere, maybe while rounding
         const factor = this.currentData.soc / 100;
         const width = Math.round(maxWidth * factor);
 

@@ -26,11 +26,11 @@
     content: '';
     position: absolute;
     width: 8px;
-    height: 16px;
+    height: 18px;
     background: rgb(200, 39, 72);
     right: -9px;
     top: 50%;
-    margin-top: -8px;
+    margin-top: -9px;
     border-radius: 2px;
   }
   
