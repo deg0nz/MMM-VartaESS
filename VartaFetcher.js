@@ -3,6 +3,7 @@ const ModbusRTU = require("modbus-serial");
 const Register = require("./Register").Register;
 const DataType = require("./Register").DataType;
 
+// Source: https://community.symcon.de/t/modbus-aus-varta-stromspeicher/51144/5
 const Registers = {
     NUM_BATTERY_MODULES: new Register(1064, 1, DataType.UINT16),
     STATE: new Register(1065, 1, DataType.UINT16),
