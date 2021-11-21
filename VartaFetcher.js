@@ -20,8 +20,20 @@ class VartaFetcher {
     }
 
     async connect() {
-        await this.client.connectTCP(this.ip, { port: this.port });
-        this.client.setID(1);
+        try {
+            await this.client.connectTCP(this.ip, { port: this.port });
+            this.client.setID(1);
+        } catch (error) {
+            if(typeof error === "PortNotOpenError") {
+                const reconnectTimeout = 1500;
+                console.log(`Connection to Varta Energy Storage failed. Trying to reconnect in ${reconnectTimeout}ms`)
+                setTimeout(() => {
+                    this.connect();
+                }, reconnectTimeout);
+            } else { 
+                throw error;
+            }
+        }
     }
 
     async readRegister(register) {
