@@ -21,12 +21,8 @@ class VartaFetcher {
   }
 
   async connect() {
-    try {
       await this.client.connectTCP(this.ip, { port: this.port });
       this.client.setID(1);
-    } catch (error) {
-      await this.handleError(error);
-    }
   }
 
   async readRegister(register) {
@@ -50,7 +46,6 @@ class VartaFetcher {
   }
 
   async handleError(error) {
-    console.log(error);
     if (error.message === "Port Not Open") {
         this.client = this.client = new ModbusRTU();
       const reconnectTimeout = 1500;
@@ -59,7 +54,7 @@ class VartaFetcher {
         await this.connect();
       }, reconnectTimeout);
     } else {
-      // throw error;
+      throw error;
     }
   }
 }
