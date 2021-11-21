@@ -30,6 +30,9 @@ module.exports = NodeHelper.create({
     },
 
     fetchData: async function() {
+        if(typeof this.fetcher === "undefined")
+            return;
+
         const data = await this.fetcher.fetch();
         const processedData = this.processData(data);
         this.sendSocketNotification("MMM-VartaESS_DATA", processedData);
