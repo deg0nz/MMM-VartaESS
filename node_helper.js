@@ -62,7 +62,7 @@ module.exports = NodeHelper.create({
             case BatteryState.ISLANDING:
                 return "BATTERY_ISLANDING";
             default:
-                return "UNKOWN_STATE";
+                return "BATTERY_UNKOWN";
         }
     },
 

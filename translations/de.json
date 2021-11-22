@@ -15,5 +15,6 @@
   "BATTERY_STANDBY": "Standby",
   "BATTERY_ERROR": "Fehler",
   "BATTERY_PASSIVE": "Service",
-  "BATTERY_ISLANDING": "Inselmodus"
+  "BATTERY_ISLANDING": "Inselmodus",
+  "BATTERY_UNKOWN": "Unbekannt"
 }
