@@ -23,6 +23,7 @@ Module.register("MMM-VartaESS", {
       threshold: 1200,
       numDecimalDigits: 2,
     },
+    clientId: 10,
   },
 
   requiresVersion: "2.1.0", // Required version of MagicMirror
@@ -58,6 +59,9 @@ Module.register("MMM-VartaESS", {
     }
 
     // Battery
+    // TODO: Colorize Battery depending on charge state
+    // > 20% yellow
+    // > 60% green
     if (this.config.showBatteryDisplay) {
       const batteryDisplay = this.getBatteryDisplay();
       wrapper.appendChild(batteryDisplay);
@@ -145,6 +149,7 @@ Module.register("MMM-VartaESS", {
     return batteryWrapper;
   },
 
+  // TODO: Convert to mW, gW, tW
   getWattString: function (value) {
     const kwConversionOptions = this.config.kwConversionOptions;
     if (kwConversionOptions.enabled && value > kwConversionOptions.threshold) {

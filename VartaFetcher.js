@@ -18,20 +18,21 @@ class VartaFetcher {
     this.client = new ModbusRTU();
     this.port = config.port;
     this.ip = config.ip;
+    this.clientId = config.clientId;
   }
 
   async connect() {
       await this.client.connectTCP(this.ip, { port: this.port });
-      this.client.setID(1);
+      this.client.setID(this.clientId);
+      console.log(`Varta Data fetcher connected (ClientID: ${this.clientId}).`);
   }
 
   async readRegister(register) {
-    const data = (await this.client.readHoldingRegisters(register.address, register.length)).data;
-    return register.convertData(data);
+        const data = (await this.client.readHoldingRegisters(register.address, register.length)).data;
+        return register.convertData(data);
   }
 
   async fetch() {
-    try {
       const data = {
         state: await this.readRegister(Registers.STATE),
         soc: await this.readRegister(Registers.SOC),
@@ -40,22 +41,6 @@ class VartaFetcher {
       };
 
       return data;
-    } catch (error) {
-      await this.handleError(error);
-    }
-  }
-
-  async handleError(error) {
-    if (error.message === "Port Not Open") {
-        this.client = this.client = new ModbusRTU();
-      const reconnectTimeout = 1500;
-      console.log(`Fetching data from Varta Energy Storage failed. Trying to reconnect in ${reconnectTimeout}ms`);
-      setTimeout(async () => {
-        await this.connect();
-      }, reconnectTimeout);
-    } else {
-      throw error;
-    }
   }
 }
 
