@@ -11,7 +11,7 @@
 Module.register("MMM-VartaESS", {
   defaults: {
     name: "MMM-VartaESS",
-    header: "Varta Energy Storage",
+    header: "Energy Storage",
     hidden: false,
     ip: "192.168.200.195",
     port: 502,
@@ -149,7 +149,6 @@ Module.register("MMM-VartaESS", {
     return batteryWrapper;
   },
 
-  // TODO: Convert to mW, gW, tW
   getWattString: function (value) {
     const kwConversionOptions = this.config.kwConversionOptions;
     if (kwConversionOptions.enabled && value > kwConversionOptions.threshold) {
