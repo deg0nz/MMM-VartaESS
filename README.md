@@ -46,7 +46,7 @@ To use this module, add the following configuration block to the modules array i
 var config = {
     modules: [
         {
-            module: 'MMM-Fronius2',
+            module: 'MMM-VartaESS',
             config: {
                 ip: "192.168.1.12", // Entering the IP of the power converter is mandatory
             }
@@ -57,7 +57,7 @@ var config = {
 
 ## Configuration options
 
-Please refer to [MMM-Fronius2 default configuration](MMM-Fronius2.js) to prevent syntax errors.
+Please refer to [MMM-VartaESS default configuration](MMM-VartaESS.js) to prevent syntax errors.
 
 | Option           | Description
 |----------------- |-----------
@@ -86,7 +86,7 @@ Sometimes, the module cannot connect to the ESS correctly and the MM logs show a
 
 ## Issues
 
-If you find any problems, bugs or have questions, please open a [GitHub issue](https://github.com/deg0nz/MMM-EnergyMonitor/issues) in this repository.
+If you find any problems, bugs or have questions, please open a [GitHub issue](https://github.com/deg0nz/MMM-VartaESS/issues) in this repository.
 
 ## Disclaimer
 
