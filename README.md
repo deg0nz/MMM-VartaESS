@@ -1,10 +1,16 @@
 # MMM-VartaESS
 
-[MagicMirror<sup>2</sup>](https://github.com/MichMich/MagicMirror/) module to show information about Varta Energy Storage Systems
+This is a module for the [MagicMirror²](https://github.com/MichMich/MagicMirror/).
 
-## Node version
+This module shows live information about Varta Energy Storage Systems.
 
-This module was developed and tested with Node.js version 16.x
+## About
+
+The module has the following features:
+
+* Show live data of Varta Energy Storage Systems (ESS)
+* Send power data to [MMM-EnergyMonitor](https://github.com/deg0nz/MMM-EnergyMonitor) (see below)
+* The data is fetched via Modbus TCP from the ESS
 
 ## Installing
 
@@ -22,9 +28,65 @@ git clone https://github.com/deg0nz/MMM-VartaESS.git
 npm install 
 ```
 
-## Configuration
+## Status
 
-// TODO
+The current development status of this module is: **maintained**
+
+This means: I'm open for feature requests, pull requests, bug reports, ...
+
+## Screenshots
+
+// TODO: Add screenshot
+
+## Using the module
+
+To use this module, add the following configuration block to the modules array in the `config/config.js` file:
+
+```js
+var config = {
+    modules: [
+        {
+            module: 'MMM-Fronius2',
+            config: {
+                ip: "192.168.1.12", // Entering the IP of the power converter is mandatory
+            }
+        }
+    ]
+}
+```
+
+## Configuration options
+
+Please refer to [MMM-Fronius2 default configuration](MMM-Fronius2.js) to prevent syntax errors.
+
+| Option           | Description
+|----------------- |-----------
+| `ip`             | *Required* The IP address if your ESS
+| `port`           | *Optional* Modbus TCP port number of the ESS <br><br>**Type:** `int` (port) <br>Default: `504` (default Modbus TCP port)
+| `clientId`       | *Optional* The client ID of Modbus TCP client of this module. If you have multiple clients asking for data in your ESS, this number should be unique <br><br>**Type:** `int` (ID) <br>Default: `10`
+| `updateInterval` | *Optional* How often should the data be updated <br><br>**Type:** `int` (milliseconds) <br>Default: `3000` milliseconds (3 seconds)
+| `showBatteryDisplay` | *Optional* Turns showing a battery display on and off <br><br>**Type:** `boolean` (on/off) <br>Default: `true` on
+| `colors`         | *Optional* Turns colors on and off <br><br>**Type:** `boolean` (on/off) <br>Default: `true` on
+| `wattConversionOptions` | *Optional* Configures if and how Watts should ge converted to kW, mW, gW <br><br>**Type:** `object` <br>See configuration below
+| `wattConversionOptions`.`enabled` | *Optional* Turns the feature on/off <br><br>**Type:** `boolean` (on/off)<br>Default: `true` (on)
+| `wattConversionOptions`.`threshold` | *Optional* At which value should numbers be converted <br><br>**Type:** `int` (Watt) <br>Default: `1200` Watt
+| `wattConversionOptions`.`numDecimalDigits` | *Optional* To how many decimal digits should the converted value be shortened (keep this value low to prevent UI glitches) <br><br>**Type:** `int` <br>Default: `2` (example: 1.45 kW)
+| `broadcastGridPower` | *Optional* Should grid power data be broadcasted to [MMM-EnergyMonitor](https://github.com/deg0nz/MMM-EnergyMonitor) <br><br>**Type:** `boolean` (on/off)<br>Default: `false` off
+| `broadcastBatteryPower` | *Optional* Should battery power data be broadcasted to [MMM-EnergyMonitor](https://github.com/deg0nz/MMM-EnergyMonitor) <br><br>**Type:** `boolean` (on/off)<br>Default: `false` off
+
+## Troubleshooting
+
+Sometimes, the module cannot connect to the ESS correctly and the MM logs show a `PortNotOpenError` created by this module. I had no time to handle that error so far, but a restart of the MagicMirror application should fix the error. Make sure, that your `clientId` is unique in your network!
+
+## Special Thanks
+
+* [MichMich](https://github.com/MichMich) for creating the Magic Mirror Project
+* [hukl](http://smyck.net) for creating the [SMYCK color theme](http://color.smyck.org) on which the default colors are based
+* [Sarawut Positwinyu](https://codepen.io/nonggolf) for sharing the [battery animation](https://codepen.io/nonggolf/pen/gOOvEeK)
+
+## Issues
+
+If you find any problems, bugs or have questions, please open a [GitHub issue](https://github.com/deg0nz/MMM-EnergyMonitor/issues) in this repository.
 
 ## Disclaimer
 
