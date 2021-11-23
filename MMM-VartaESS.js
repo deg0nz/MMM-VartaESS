@@ -15,16 +15,16 @@ Module.register("MMM-VartaESS", {
     hidden: false,
     ip: "192.168.200.195",
     port: 502,
+    clientId: 10,
     updateInterval: 3000,
     width: 250,
     showBatteryDisplay: true,
     colors: true,
-    kwConversionOptions: {
+    wattConversionOptions: {
       enabled: true,
       threshold: 1200,
       numDecimalDigits: 2,
     },
-    clientId: 10,
     broadcastBatteryPower: false,
     broadcastGridPower: false,
   },
@@ -165,16 +165,12 @@ Module.register("MMM-VartaESS", {
   },
 
   getWattString: function (value) {
-    const kwConversionOptions = this.config.kwConversionOptions;
-    if (kwConversionOptions.enabled && value > kwConversionOptions.threshold) {
-      return `${(value / 1000).toFixed(kwConversionOptions.numDecimalDigits)} kW`;
+    const wattConversionOptions = this.config.wattConversionOptions;
+    if (wattConversionOptions.enabled && value > wattConversionOptions.threshold) {
+      return `${(value / 1000).toFixed(wattConversionOptions.numDecimalDigits)} kW`;
     }
 
     return `${value} W`;
-  },
-
-  getScripts: function () {
-    return [];
   },
 
   getStyles: function () {
