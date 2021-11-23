@@ -18,6 +18,7 @@ Module.register("MMM-VartaESS", {
     updateInterval: 3000,
     width: 250,
     showBatteryDisplay: true,
+    colors: true,
     kwConversionOptions: {
       enabled: true,
       threshold: 1200,
@@ -129,17 +130,29 @@ Module.register("MMM-VartaESS", {
   getBatteryDisplay: function () {
     const batteryWrapper = document.createElement("div");
     batteryWrapper.id = "battery-wrapper";
-    // Battery should have 90% of module width
-    const wrapperWidth = Math.round(this.config.width * 0.9);
+    // Battery should have 85% of module width
+    const wrapperWidth = Math.round(this.config.width * 0.85);
     batteryWrapper.style.width = `${wrapperWidth}px`;
 
     const batteryState = document.createElement("div");
     batteryState.id = "battery-state";
 
+    const soc = this.currentData.soc;
+
+    if(this.colors) {
+      if(soc < 25) {
+        batteryState.classList.add("battery-state-red");
+      } else if(soc < 75) {
+        batteryState.classList.add("battery-state-yellow");
+      } else {
+        batteryState.classList.add("battery-state-green");
+      }
+    }
+
     // Internal display should also narrower than battery to preserve internal border
     // Calculation from right: 8px "battery nose" + 4px border + 5px internal border = 17px
     const maxWidth = wrapperWidth - 18; // Dunno, why 18 seems to look light. 1px got lost somewhere, maybe while rounding
-    const factor = this.currentData.soc / 100;
+    const factor = soc / 100;
     const width = Math.round(maxWidth * factor);
     batteryState.style.width = `${width}px`;
 
