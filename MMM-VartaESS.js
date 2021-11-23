@@ -24,6 +24,8 @@ Module.register("MMM-VartaESS", {
       numDecimalDigits: 2,
     },
     clientId: 10,
+    broadcastBatteryPower: false,
+    broadcastGridPower: false,
   },
 
   requiresVersion: "2.1.0", // Required version of MagicMirror
@@ -182,6 +184,14 @@ Module.register("MMM-VartaESS", {
     }
 
     if (notification === "MMM-VartaESS_DATA") {
+      if(this.config.broadcastBatteryPower) {
+        this.sendNotification("MMM-EnergyMonitor_ENERGY_STORAGE_POWER_UPDATE", payload.activePower);
+      }
+
+      if(this.config.broadcastGridPower) {
+        this.sendNotification("MMM-EnergyMonitor_GRID_POWER_UPDATE", payload.gridPower);
+      }
+
       this.currentData = payload;
       this.updateDom();
     }
