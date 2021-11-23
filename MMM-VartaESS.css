@@ -4,10 +4,8 @@
     font-size: var(--font-size);
     color: var(--color-text);
     font-weight: normal;
-    line-height: 1.5;
     display: block;
     box-sizing: border-box !important;
-    width: auto;
 }
 
 #battery-wrapper {
@@ -50,7 +48,6 @@
 
 #table-wrapper {
     margin-top: 10px;
-    width: 100%;
 }
 
 .battery-state-red {
