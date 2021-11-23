@@ -27,6 +27,8 @@ class VartaFetcher {
       console.log(`Varta Data fetcher connected (ClientID: ${this.clientId}).`);
   }
 
+  // PortNotOpenError:
+  // UnhandledPromiseRejectionWarning: PortNotOpenError: Port Not Open
   async readRegister(register) {
         const data = (await this.client.readHoldingRegisters(register.address, register.length)).data;
         return register.convertData(data);
