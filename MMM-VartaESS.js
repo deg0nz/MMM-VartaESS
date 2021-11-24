@@ -61,10 +61,6 @@ Module.register("MMM-VartaESS", {
       return wrapper;
     }
 
-    // Battery
-    // TODO: Colorize Battery depending on charge state
-    // > 20% yellow
-    // > 60% green
     if (this.config.showBatteryDisplay) {
       const batteryDisplay = this.getBatteryDisplay();
       wrapper.appendChild(batteryDisplay);
@@ -139,7 +135,7 @@ Module.register("MMM-VartaESS", {
 
     const soc = this.currentData.soc;
 
-    if(this.colors) {
+    if(this.config.colors) {
       if(soc < 25) {
         batteryState.classList.add("battery-state-red");
       } else if(soc < 75) {
