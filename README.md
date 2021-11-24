@@ -12,6 +12,10 @@ The module has the following features:
 * Send power data to [MMM-EnergyMonitor](https://github.com/deg0nz/MMM-EnergyMonitor) (see below)
 * The data is fetched via Modbus TCP from the ESS
 
+*A word about extendability:*
+
+The module is designed in a way, that is is easily possible to support other battery manufacturers as well (as far as their have an interface to access data). If you have the need to support and use another battery manufacturer, please [create an issue](https://github.com/deg0nz/MMM-VartaESS/issues).
+
 ## Installing
 
 The dependency `modbus-serial` needs to compile native code an therefore needs the GNU C++ compiler installed. So please make sure, you have installed it:
