@@ -14,7 +14,7 @@ The module has the following features:
 
 *A word about extendability:*
 
-The module is designed in a way, that is is easily possible to support other battery manufacturers as well (as far as their have an interface to access data). If you have the need to support and use another battery manufacturer, please [create an issue](https://github.com/deg0nz/MMM-VartaESS/issues).
+The module is designed in a way, that is is easily possible to support other battery manufacturers as well (depending on the fact that their devices have an interface to access data). If you have the need to support and use another battery manufacturer, please [create an issue](https://github.com/deg0nz/MMM-VartaESS/issues) and/or create a pull request :).
 
 ## Installing
 
