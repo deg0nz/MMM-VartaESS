@@ -35,6 +35,10 @@ Module.register("MMM-VartaESS", {
     this.data.header = this.config.header;
     this.currentData = null;
     this.loaded = false;
+    this.error = {
+      active: false,
+      message: ""
+    }
 
     this.sendSocketNotification("MMM-VartaESS_INIT", this.config);
 
@@ -61,6 +65,12 @@ Module.register("MMM-VartaESS", {
       return wrapper;
     }
 
+    if (this.currentData === null && this.error.active) {
+      wrapper.className = "small light dimmed";
+      wrapper.innerHTML = `${this.translate(this.error.message)}...`;
+      return wrapper;
+    }
+
     if (this.config.showBatteryDisplay) {
       const batteryDisplay = this.getBatteryDisplay();
       wrapper.appendChild(batteryDisplay);
@@ -81,7 +91,10 @@ Module.register("MMM-VartaESS", {
     const table = document.createElement("table");
 
     const stateDescription = `${this.translate("STATE")}:`;
-    const stateValue = this.translate(this.currentData.state);
+    let stateValue = this.translate(this.currentData.state);
+    if(this.error.active) {
+      stateValue = this.translate(this.error.message);
+    }
     this.appendTableRow(stateDescription, stateValue, table);
 
     const socDescription = `${this.translate("CHARGE")}:`;
@@ -188,7 +201,15 @@ Module.register("MMM-VartaESS", {
       this.scheduleUpdate();
     }
 
+    if (notification === "MMM-VartaESS_FETCHER_ERROR") {
+      this.error.active = true;
+      this.error.message = payload;
+    }
+
     if (notification === "MMM-VartaESS_DATA") {
+      this.error.active = false;
+      this.error.message = "";
+
       if(this.config.broadcastBatteryPower) {
         this.sendNotification("MMM-EnergyMonitor_ENERGY_STORAGE_POWER_UPDATE", payload.activePower);
       }

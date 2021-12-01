@@ -20,6 +20,9 @@ class Register {
             case DataType.SINT16:
                 output = Int16Array.from(rawData);
                 break;
+            
+            default:
+                return 0;
         }
 
         // Currently, all values have 16 Bit, so we can safely return this
