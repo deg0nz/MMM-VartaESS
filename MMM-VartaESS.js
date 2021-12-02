@@ -34,11 +34,9 @@ Module.register("MMM-VartaESS", {
   start: function () {
     this.data.header = this.config.header;
     this.currentData = null;
+    this.scheduleTimer = null;
     this.loaded = false;
-    this.error = {
-      active: false,
-      message: ""
-    }
+    this.fetcherConnected = false;
 
     this.sendSocketNotification("MMM-VartaESS_INIT", this.config);
 
@@ -47,7 +45,7 @@ Module.register("MMM-VartaESS", {
 
   scheduleUpdate: function () {
     setInterval(() => {
-        if(this.loaded) {
+        if(this.fetcherConnected) {
             this.sendSocketNotification("MMM-VartaESS_FETCH_DATA");
         }
     }, this.config.updateInterval);
@@ -65,9 +63,9 @@ Module.register("MMM-VartaESS", {
       return wrapper;
     }
 
-    if (this.currentData === null && this.error.active) {
+    if (this.currentData === null && !this.fetcherConnected) {
       wrapper.className = "small light dimmed";
-      wrapper.innerHTML = `${this.translate(this.error.message)}...`;
+      wrapper.innerHTML = `${this.translate("ERROR_NOT_CONNECTED")}...`;
       return wrapper;
     }
 
@@ -92,8 +90,8 @@ Module.register("MMM-VartaESS", {
 
     const stateDescription = `${this.translate("STATE")}:`;
     let stateValue = this.translate(this.currentData.state);
-    if(this.error.active) {
-      stateValue = this.translate(this.error.message);
+    if(!this.fetcherConnected) {
+      stateValue = this.translate("ERROR_NOT_CONNECTED");
     }
     this.appendTableRow(stateDescription, stateValue, table);
 
@@ -201,15 +199,16 @@ Module.register("MMM-VartaESS", {
       this.scheduleUpdate();
     }
 
-    if (notification === "MMM-VartaESS_FETCHER_ERROR") {
-      this.error.active = true;
-      this.error.message = payload;
+    if (notification === "MMM-VartaESS_FETCHER_CONNECTED") {
+      this.fetcherConnected = true;
+    }
+
+    if (notification === "MMM-VartaESS_FETCHER_DISCONNECTED") {
+      this.fetcherConnected = false;
+      this.updateDom();
     }
 
     if (notification === "MMM-VartaESS_DATA") {
-      this.error.active = false;
-      this.error.message = "";
-
       if(this.config.broadcastBatteryPower) {
         this.sendNotification("MMM-EnergyMonitor_ENERGY_STORAGE_POWER_UPDATE", payload.activePower);
       }

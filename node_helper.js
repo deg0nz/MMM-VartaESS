@@ -7,7 +7,8 @@
  */
 
 const NodeHelper = require("node_helper");
-const VartaFetcher = require("./VartaFetcher");
+const VartaFetcher = require("./VartaFetcher").VartaFetcher;
+const ConnectionState = require("./VartaFetcher").ConnectionState;
 
 const BatteryState = {
     BUSY: 0,    // e.g. Booting
@@ -22,7 +23,15 @@ const BatteryState = {
 
 module.exports = NodeHelper.create({
     initialize: async function(config) {
-        this.fetcher = new VartaFetcher(config);
+        const fetcherConnectionNotificationCallback = (state) => {
+            if(state === ConnectionState.CONNECTED)
+                this.sendSocketNotification("MMM-VartaESS_FETCHER_CONNECTED");
+    
+            if(state === ConnectionState.DISCONNECTED)
+                this.sendSocketNotification("MMM-VartaESS_FETCHER_DISCONNECTED");
+        };
+
+        this.fetcher = new VartaFetcher(config, fetcherConnectionNotificationCallback);
         await this.fetcher.connect();
         this.sendSocketNotification("MMM-VartaESS_INITIALIZED");
     },
@@ -36,7 +45,7 @@ module.exports = NodeHelper.create({
             const processedData = this.processData(data);
             this.sendSocketNotification("MMM-VartaESS_DATA", processedData);        
         } catch (error) {
-            this.sendSocketNotification("MMM-VartaESS_FETCHER_ERROR", error.message);
+            console.log(error);
         }
     },
 

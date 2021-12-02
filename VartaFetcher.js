@@ -13,27 +13,58 @@ const Registers = {
     ACTIVE_POWER: new Register(1066, 1, DataType.SINT16),
 };
 
+const ConnectionState = {
+    CONNECTED: "CONNECTED",
+    DISCONNECTED: "DISCONNECTED",
+}
+
 class VartaFetcher {
-    constructor(config) {
+    constructor(config, connectionNotificationCallback) {
         this.client = new ModbusRTU();
         this.port = config.port;
         this.ip = config.ip;
         this.clientId = config.clientId;
         this.timeout = 2000;
+        this.reconnectInterval = 3000;
+        this.connectionNotificationCallback = connectionNotificationCallback;
+        this.reconnectInProgress = false;
+
+        this.client.setID(this.clientId);
+        this.client.setTimeout(this.timeout);
     }
 
     async connect() {
         try {
+
             await this.client.close(() => {
-                this.log(`Client ID ${this.clientId}) closed connection.`);
+                this.log(`Closed connection.`);
             });
-            this.client.setID(this.clientId);
-            this.client.setTimeout(this.timeout);
+
             await this.client.connectTCP(this.ip, { port: this.port });
-            this.log(`Connected with client ID: ${this.clientId}).`);
+            this.connectionNotificationCallback(ConnectionState.CONNECTED);
+            this.reconnectInProgress = false;
+
+            this.log(`Connected.`);
+
         } catch (error) {
-            this.log("Connection error. Trying to reconnect on next fetch.");
+            this.connectionNotificationCallback(ConnectionState.DISCONNECTED);
+
+            if(!this.reconnectInProgress) {
+                this.reconnectInProgress = true;
+                this.handleReconnect();
+            }
+
+            this.log(`Connection error.`);
             console.log(error);
+        }
+    }
+
+    handleReconnect() {
+        while(!this.client.isOpen) {
+            this.log(`Reconnecting in ${this.reconnectInterval}ms`);
+            setTimeout(async () => {
+                await this.connect();
+            }, this.reconnectInterval);
         }
     }
 
@@ -55,20 +86,18 @@ class VartaFetcher {
         } catch (error) {
             if(!this.client.isOpen) {
                 await this.connect();
-
-                throw new Error("ERROR_NOT_CONNECTED");
             }
 
-            this.log("Read error.");
-            console.log(error)
-
-            throw new Error("ERROR_READ");
+            throw error;
         }
     }
 
     log(msg) {
-        console.log(`[Varta Data Fetcher] ${msg}`);
+        console.log(`[Varta Data Fetcher (ID: ${this.clientId})] ${msg}`);
     }
 }
 
-module.exports = VartaFetcher;
+module.exports = {
+    VartaFetcher,
+    ConnectionState
+}

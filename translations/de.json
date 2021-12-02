@@ -17,6 +17,5 @@
   "BATTERY_PASSIVE": "Service",
   "BATTERY_ISLANDING": "Inselmodus",
   "BATTERY_UNKOWN": "Unbekannt",
-  "ERROR_NOT_CONNECTED": "Keine Verbindung zur Batterie",
-  "ERROR_READ": "Fehler beim Lesen der Daten"
+  "ERROR_NOT_CONNECTED": "Keine Verbindung zur Batterie"
 }
