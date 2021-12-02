@@ -20,14 +20,15 @@ const ConnectionState = {
 
 class VartaFetcher {
     constructor(config, connectionNotificationCallback) {
-        this.client = new ModbusRTU();
-        this.port = config.port;
-        this.ip = config.ip;
-        this.clientId = config.clientId;
         this.timeout = 2000;
         this.reconnectInterval = 3000;
         this.connectionNotificationCallback = connectionNotificationCallback;
         this.reconnectInProgress = false;
+        this.clientId = config.clientId;
+
+        this.client = new ModbusRTU();
+        this.port = config.port;
+        this.ip = config.ip;
 
         this.client.setID(this.clientId);
         this.client.setTimeout(this.timeout);
@@ -60,12 +61,16 @@ class VartaFetcher {
     }
 
     handleReconnect() {
-        while(!this.client.isOpen) {
+        const interval = setInterval(async () => {
             this.log(`Reconnecting in ${this.reconnectInterval}ms`);
-            setTimeout(async () => {
+
+            if(this.reconnectInProgress) {
                 await this.connect();
-            }, this.reconnectInterval);
-        }
+            } else {
+                clearInterval(interval);
+            }
+
+        }, this.reconnectInterval);
     }
 
     async readRegister(register) {
