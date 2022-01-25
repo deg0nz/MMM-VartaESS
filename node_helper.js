@@ -29,6 +29,10 @@ module.exports = NodeHelper.create({
             this.sendSocketNotification("MMM-VartaESS_DATA", processedData);
         });
 
+        this.fetcher.on("ERROR", (error_string) => {
+            this.sendSocketNotification("MMM-VartaESS_ERROR", error_string);
+        });
+
         this.fetcher.run();
         this.sendSocketNotification("MMM-VartaESS_INITIALIZED");
     },

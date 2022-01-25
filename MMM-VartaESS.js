@@ -36,7 +36,7 @@ Module.register("MMM-VartaESS", {
     this.currentData = null;
     this.scheduleTimer = null;
     this.loaded = false;
-    this.fetcherConnected = false;
+    this.error = null;
 
     this.sendSocketNotification("MMM-VartaESS_INIT", this.config);
 
@@ -55,9 +55,9 @@ Module.register("MMM-VartaESS", {
       return wrapper;
     }
 
-    if (this.currentData === null && !this.fetcherConnected) {
+    if (this.error !== null) {
       wrapper.className = "small light dimmed";
-      wrapper.innerHTML = `${this.translate("ERROR_NOT_CONNECTED")}...`;
+      wrapper.innerHTML = `${this.translate(this.error)}...`;
       return wrapper;
     }
 
@@ -190,6 +190,10 @@ Module.register("MMM-VartaESS", {
       this.loaded = true;
     }
 
+    if (notification === "MMM-VartaESS_ERROR") {
+      this.error = payload;
+    }
+
     if (notification === "MMM-VartaESS_DATA") {
       if(this.config.broadcastBatteryPower) {
         this.sendNotification("MMM-EnergyMonitor_ENERGY_STORAGE_POWER_UPDATE", payload.activePower);
@@ -199,6 +203,7 @@ Module.register("MMM-VartaESS", {
         this.sendNotification("MMM-EnergyMonitor_GRID_POWER_UPDATE", payload.gridPower);
       }
 
+      this.error = null;
       this.currentData = payload;
       this.updateDom();
     }

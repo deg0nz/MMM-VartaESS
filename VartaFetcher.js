@@ -15,13 +15,13 @@ const Registers = {
 };
 
 const State = {
-    INIT: 0,
-    IDLE: 1,
-    NEXT: 2,
-    READ_SUCCESS: 3,
-    READ_FAIL: 4,
-    CONNECT_SUCCESS: 5,
-    CONNECT_FAIL: 6
+    INIT: "MODBUS_INIT",
+    IDLE: "MODBUS_IDLE",
+    NEXT: "MODBUS_NEXT",
+    READ_SUCCESS: "MODBUS_READ_SUCCESS",
+    READ_ERROR: "MODBUS_READ_ERROR",
+    CONNECT_SUCCESS: "MODBUS_CONNECT_SUCCESS",
+    CONNECT_ERROR: "MODBUS_CONNECT_ERROR"
 }
 
 class VartaFetcher extends EventEmitter {
@@ -53,7 +53,8 @@ class VartaFetcher extends EventEmitter {
 
             this.log(`Connected.`);
         } catch (error) {
-            this.state = State.CONNECT_FAIL;
+            this.state = State.CONNECT_ERROR;
+            this.emit("ERROR", State.CONNECT_ERROR)
 
             this.log(`Connection error.`);
             console.log(error);
@@ -80,8 +81,8 @@ class VartaFetcher extends EventEmitter {
             this.log("Successfully read modbus data.");
 
         } catch (error) {
-            this.emit("READ_ERROR", error);
-            this.state = State.READ_FAIL;
+            this.state = State.READ_ERROR;
+            this.emit("ERROR", State.READ_ERROR);
 
             this.log("Modbus read error");
             this.log(JSON.stringify(error));
@@ -104,7 +105,7 @@ class VartaFetcher extends EventEmitter {
                 await this.readData();
                 break;
     
-            case State.CONNECT_FAIL:
+            case State.CONNECT_ERROR:
                 await this.connect();
                 break;
     
@@ -112,7 +113,7 @@ class VartaFetcher extends EventEmitter {
                 await this.readData();
                 break;
     
-            case State.READ_FAIL:
+            case State.READ_ERROR:
                 if (this.client.isOpen)  { 
                     this.state = State.NEXT;  
                 } else { 
