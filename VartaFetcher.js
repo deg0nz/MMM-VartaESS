@@ -15,13 +15,13 @@ const Registers = {
 };
 
 const State = {
-    INIT,
-    IDLE,
-    NEXT,
-    READ_SUCCESS,
-    READ_FAIL,
-    CONNECT_SUCCESS,
-    CONNECT_FAIL
+    INIT: 0,
+    IDLE: 1,
+    NEXT: 2,
+    READ_SUCCESS: 3,
+    READ_FAIL: 4,
+    CONNECT_SUCCESS: 5,
+    CONNECT_FAIL: 6
 }
 
 class VartaFetcher extends EventEmitter {
