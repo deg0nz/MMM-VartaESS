@@ -26,6 +26,7 @@ const State = {
 
 class VartaFetcher extends EventEmitter {
     constructor(config) {
+        super();
         this.timeout = 2000;
         this.reconnectInterval = 3000;
         this.reconnectInProgress = false;
