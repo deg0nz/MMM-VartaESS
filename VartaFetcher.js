@@ -27,26 +27,23 @@ const State = {
 class VartaFetcher extends EventEmitter {
     constructor(config) {
         super();
-        this.timeout = 2000;
-        this.reconnectInterval = 3000;
-        this.reconnectInProgress = false;
+        this.timeout = 1000;
+        this.updateInterval = config.updateInterval;
         this.clientId = config.clientId;
-
-        this.client = new ModbusRTU();
         this.port = config.port;
         this.ip = config.ip;
 
+        this.client = new ModbusRTU();
         this.client.setID(this.clientId);
         this.client.setTimeout(this.timeout);
+
 
         this.state = State.INIT;
     }
 
     async connect() {
         try {
-            await this.client.close(() => {
-                this.log(`Closed connection.`);
-            });
+            await this.client.close();
             await this.client.connectTCP(this.ip, { port: this.port });
             
             this.state = State.CONNECT_SUCCESS;
@@ -113,7 +110,7 @@ class VartaFetcher extends EventEmitter {
                 break;
     
             case State.READ_FAIL:
-                if (client.isOpen)  { 
+                if (this.client.isOpen)  { 
                     this.state = State.NEXT;  
                 } else { 
                     nextAction = this.connect; 
@@ -126,11 +123,11 @@ class VartaFetcher extends EventEmitter {
 
         if (nextAction !== undefined)
         {
-            await nextAction();
+            nextAction();
             this.state = State.IDLE;
         }
 
-        setTimeout(this.run, this.config.updateInterval);
+        setTimeout(this.run, this.updateInterval);
     }
 
     log(msg) {
