@@ -124,12 +124,6 @@ class VartaFetcher extends EventEmitter {
                 // nothing to do, keep scanning until actionable case
         }
 
-        // if (nextAction !== undefined)
-        // {
-        //     nextAction();
-        //     this.state = State.IDLE;
-        // }
-
         setTimeout(() => {
             this.run();
         }, this.updateInterval);
@@ -138,7 +132,6 @@ class VartaFetcher extends EventEmitter {
     log(msg) {
         console.log(`[Varta Data Fetcher (ID: ${this.clientId})] ${msg}`);
     }
-
 }
 
 module.exports = {
