@@ -13,7 +13,7 @@ Module.register("MMM-VartaESS", {
     name: "MMM-VartaESS",
     header: "Energy Storage",
     hidden: false,
-    ip: "192.168.200.195",
+    ip: "192.168.0.55",
     port: 502,
     clientId: 10,
     updateInterval: 3000,
@@ -41,14 +41,6 @@ Module.register("MMM-VartaESS", {
     this.sendSocketNotification("MMM-VartaESS_INIT", this.config);
 
     Log.info("MMM-VartaESS started.");
-  },
-
-  scheduleUpdate: function () {
-    setInterval(() => {
-        if(this.fetcherConnected) {
-            this.sendSocketNotification("MMM-VartaESS_FETCH_DATA");
-        }
-    }, this.config.updateInterval);
   },
 
   getDom: function () {
@@ -196,16 +188,6 @@ Module.register("MMM-VartaESS", {
   socketNotificationReceived: function (notification, payload) {
     if (notification === "MMM-VartaESS_INITIALIZED") {
       this.loaded = true;
-      this.scheduleUpdate();
-    }
-
-    if (notification === "MMM-VartaESS_FETCHER_CONNECTED") {
-      this.fetcherConnected = true;
-    }
-
-    if (notification === "MMM-VartaESS_FETCHER_DISCONNECTED") {
-      this.fetcherConnected = false;
-      this.updateDom();
     }
 
     if (notification === "MMM-VartaESS_DATA") {
