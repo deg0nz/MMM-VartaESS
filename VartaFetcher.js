@@ -86,34 +86,34 @@ class VartaFetcher extends EventEmitter {
     }
 
     async run() {
-        let nextAction;
+        // let nextAction;
 
         switch (this.state) {
             case State.INIT:
-                nextAction = this.connect;
+                await this.connect();
                 break;
     
             case State.NEXT:
-                nextAction = this.readData;
+                await this.readData();
                 break;
     
             case State.CONNECT_SUCCESS:
-                nextAction = this.readData;
+                await this.readData();
                 break;
     
             case State.CONNECT_FAIL:
-                nextAction = this.connect;
+                await this.connect();
                 break;
     
             case State.READ_SUCCESS:
-                nextAction = this.readData;
+                await this.readData();
                 break;
     
             case State.READ_FAIL:
                 if (this.client.isOpen)  { 
                     this.state = State.NEXT;  
                 } else { 
-                    nextAction = this.connect; 
+                    await this.connect(); 
                 }
                 break;
     
@@ -121,13 +121,15 @@ class VartaFetcher extends EventEmitter {
                 // nothing to do, keep scanning until actionable case
         }
 
-        if (nextAction !== undefined)
-        {
-            nextAction();
-            this.state = State.IDLE;
-        }
+        // if (nextAction !== undefined)
+        // {
+        //     nextAction();
+        //     this.state = State.IDLE;
+        // }
 
-        setTimeout(this.run, this.updateInterval);
+        setTimeout(() => {
+            this.run();
+        }, this.updateInterval);
     }
 
     log(msg) {
