@@ -55,7 +55,7 @@ Module.register("MMM-VartaESS", {
       return wrapper;
     }
 
-    if (this.error !== null) {
+    if (this.error !== null && !this.loaded) {
       wrapper.className = "small light dimmed";
       wrapper.innerHTML = `${this.translate(this.error)}...`;
       return wrapper;
@@ -82,8 +82,8 @@ Module.register("MMM-VartaESS", {
 
     const stateDescription = `${this.translate("STATE")}:`;
     let stateValue = this.translate(this.currentData.state);
-    if(!this.fetcherConnected) {
-      stateValue = this.translate("ERROR_NOT_CONNECTED");
+    if(this.error !== null) {
+      stateValue = this.translate(this.error);
     }
     this.appendTableRow(stateDescription, stateValue, table);
 
@@ -192,6 +192,7 @@ Module.register("MMM-VartaESS", {
 
     if (notification === "MMM-VartaESS_ERROR") {
       this.error = payload;
+      this.updateDom();
     }
 
     if (notification === "MMM-VartaESS_DATA") {
