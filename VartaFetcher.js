@@ -76,8 +76,11 @@ class VartaFetcher extends EventEmitter {
 
     async readData() {
         try {
-            let data = {
-                state:  await this.readRegister(Registers.STATE),
+            const batteryState = await this.readRegister(Registers.STATE);
+            const batteryStateString = this.getBatteryStateString(batteryState);
+
+            const data = {
+                state: batteryStateString,
                 soc: await this.readRegister(Registers.SOC),
                 gridPower: await this.readRegister(Registers.GRID_POWER),
                 activePower: await this.readRegister(Registers.ACTIVE_POWER),
@@ -96,39 +99,6 @@ class VartaFetcher extends EventEmitter {
             this.log("Modbus read error:");
             this.log(JSON.stringify(error));
         }
-    }
-
-    getBatteryStateString(state) {
-        switch (state) {
-            case BatteryState.BUSY:
-                return "BATTERY_BUSY";
-            case BatteryState.RUN:
-                return "BATTERY_RUN";
-            case BatteryState.CHARGE:
-                return "BATTERY_CHARGE";
-            case BatteryState.DISCHARGE:
-                return "BATTERY_DISCHARGE";
-            case BatteryState.STANDBY:
-                return "BATTERY_STANDBY";
-            case BatteryState.ERROR:
-                return "BATTERY_ERROR";
-            case BatteryState.PASSIVE:
-                return "BATTERY_PASSIVE";
-            case BatteryState.ISLANDING:
-                return "BATTERY_ISLANDING";
-            default:
-                return "BATTERY_UNKOWN";
-        }
-    }
-
-    log(msg) {
-        console.log(`[VartaESS Data Fetcher (ID: ${this.clientId})] ${msg}`);
-    }
-
-    async disconnect() {
-        await this.client.close(() => {
-            console.log("VartaFetcher connection closed.");
-        });
     }
 
     async run() {
@@ -168,6 +138,33 @@ class VartaFetcher extends EventEmitter {
         setTimeout(() => {
             this.run();
         }, this.updateInterval);
+    }
+
+    getBatteryStateString(state) {
+        switch (state) {
+            case BatteryState.BUSY:
+                return "BATTERY_BUSY";
+            case BatteryState.RUN:
+                return "BATTERY_RUN";
+            case BatteryState.CHARGE:
+                return "BATTERY_CHARGE";
+            case BatteryState.DISCHARGE:
+                return "BATTERY_DISCHARGE";
+            case BatteryState.STANDBY:
+                return "BATTERY_STANDBY";
+            case BatteryState.ERROR:
+                return "BATTERY_ERROR";
+            case BatteryState.PASSIVE:
+                return "BATTERY_PASSIVE";
+            case BatteryState.ISLANDING:
+                return "BATTERY_ISLANDING";
+            default:
+                return "BATTERY_UNKOWN";
+        }
+    }
+
+    log(msg) {
+        console.log(`[VartaESS Data Fetcher (ID: ${this.clientId})] ${msg}`);
     }
 }
 

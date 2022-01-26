@@ -15,7 +15,7 @@ module.exports = NodeHelper.create({
             this.fetcher = new VartaFetcher(config);
 
             this.fetcher.on("DATA", (data) => {
-                this.sendSocketNotification("MMM-VartaESS_DATA", processedData);
+                this.sendSocketNotification("MMM-VartaESS_DATA", data);
             });
 
             this.fetcher.on("ERROR", (error_string) => {
@@ -27,7 +27,7 @@ module.exports = NodeHelper.create({
         }
     },
 
-    stop() {
+    stop: function () {
         this.fetcher.disconnect();
     },
 
