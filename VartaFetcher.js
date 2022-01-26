@@ -40,7 +40,7 @@ class VartaFetcher extends EventEmitter {
         this.state = State.INIT;
     }
 
-    async connect() {
+    async #connect() {
         try {
             await this.disconnect();
 
@@ -48,34 +48,29 @@ class VartaFetcher extends EventEmitter {
 
             this.state = State.CONNECT_SUCCESS;
 
-            this.log(`Connected.`);
+            this.#log(`Connected.`);
         } catch (error) {
             this.state = State.CONNECT_ERROR;
             this.emit("ERROR", State.CONNECT_ERROR);
 
-            this.log(`Connection error.`);
+            this.#log(`Connection error.`);
             console.log(error);
         }
     }
 
-    async disconnect() {
-        await this.client.close(() => {
-            console.log("VartaFetcher connection closed.");
-        });
-    }
 
-    async readRegister(register) {
+    async #readRegister(register) {
         const data = (await this.client.readHoldingRegisters(register.address, register.length)).data;
         return register.convertData(data);
     }
 
-    async readData() {
+    async #readData() {
         try {
             const data = {
-                state: await this.readRegister(Registers.STATE),
-                soc: await this.readRegister(Registers.SOC),
-                gridPower: await this.readRegister(Registers.GRID_POWER),
-                activePower: await this.readRegister(Registers.ACTIVE_POWER),
+                state: await this.#readRegister(Registers.STATE),
+                soc: await this.#readRegister(Registers.SOC),
+                gridPower: await this.#readRegister(Registers.GRID_POWER),
+                activePower: await this.#readRegister(Registers.ACTIVE_POWER),
             };
 
             this.emit("DATA", data);
@@ -86,40 +81,48 @@ class VartaFetcher extends EventEmitter {
             this.state = State.READ_ERROR;
             this.emit("ERROR", State.READ_ERROR);
 
-            this.log("Modbus read error:");
-            this.log(JSON.stringify(error));
+            this.#log("Modbus read error:");
+            this.#log(JSON.stringify(error));
         }
     }
 
-    async run() {
-        // let nextAction;
+    #log(msg) {
+      console.log(`[VartaESS Data Fetcher (ID: ${this.clientId})] ${msg}`);
+    }
 
+    async disconnect() {
+      await this.client.close(() => {
+          console.log("VartaFetcher connection closed.");
+      });
+    }
+
+    async run() {
         switch (this.state) {
             case State.INIT:
-                await this.connect();
+                await this.#connect();
                 break;
 
             case State.NEXT:
-                await this.readData();
+                await this.#readData();
                 break;
 
             case State.CONNECT_SUCCESS:
-                await this.readData();
+                await this.#readData();
                 break;
 
             case State.CONNECT_ERROR:
-                await this.connect();
+                await this.#connect();
                 break;
 
             case State.READ_SUCCESS:
-                await this.readData();
+                await this.#readData();
                 break;
 
             case State.READ_ERROR:
                 if (this.client.isOpen) {
                     this.state = State.NEXT;
                 } else {
-                    await this.connect();
+                    await this.#connect();
                 }
                 break;
 
@@ -130,10 +133,6 @@ class VartaFetcher extends EventEmitter {
         setTimeout(() => {
             this.run();
         }, this.updateInterval);
-    }
-
-    log(msg) {
-        console.log(`[VartaESS Data Fetcher (ID: ${this.clientId})] ${msg}`);
     }
 }
 
