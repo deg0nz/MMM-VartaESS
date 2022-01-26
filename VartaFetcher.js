@@ -43,9 +43,7 @@ class VartaFetcher extends EventEmitter {
 
     async connect() {
         try {
-            await this.client.close(() => {
-                console.log("VartaFetcher connection closed.");
-            });
+            await this.disconnect();
 
             await this.client.connectTCP(this.ip, { port: this.port });
             
@@ -59,6 +57,12 @@ class VartaFetcher extends EventEmitter {
             this.log(`Connection error.`);
             console.log(error);
         }
+    }
+
+    async disconnect() {
+        await this.client.close(() => {
+            console.log("VartaFetcher connection closed.");
+        });
     }
 
     async readRegister(register) {

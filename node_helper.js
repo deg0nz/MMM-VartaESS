@@ -65,6 +65,10 @@ module.exports = NodeHelper.create({
         }
     },
 
+    stop() {
+        this.fetcher.disconnect();
+    },
+
 	socketNotificationReceived: function(notification, payload) {
 		if (notification === "MMM-VartaESS_INIT") {
             this.initialize(payload);
