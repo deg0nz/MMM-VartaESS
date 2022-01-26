@@ -22,19 +22,21 @@ const BatteryState = {
 
 module.exports = NodeHelper.create({
     initialize: async function(config) {
-        this.fetcher = new VartaFetcher(config);
+        if (typeof this.fetcher === "undefined") {
+            this.fetcher = new VartaFetcher(config);
 
-        this.fetcher.on("DATA", (data) => {
-            const processedData = this.processData(data);
-            this.sendSocketNotification("MMM-VartaESS_DATA", processedData);
-        });
-
-        this.fetcher.on("ERROR", (error_string) => {
-            this.sendSocketNotification("MMM-VartaESS_ERROR", error_string);
-        });
-
-        this.fetcher.run();
-        this.sendSocketNotification("MMM-VartaESS_INITIALIZED");
+            this.fetcher.on("DATA", (data) => {
+                const processedData = this.processData(data);
+                this.sendSocketNotification("MMM-VartaESS_DATA", processedData);
+            });
+    
+            this.fetcher.on("ERROR", (error_string) => {
+                this.sendSocketNotification("MMM-VartaESS_ERROR", error_string);
+            });
+    
+            this.fetcher.run();
+            this.sendSocketNotification("MMM-VartaESS_INITIALIZED");
+        }
     },
 
     processData: function(data) {
