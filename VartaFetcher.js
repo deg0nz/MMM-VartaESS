@@ -69,6 +69,12 @@ class VartaFetcher extends EventEmitter {
         }
     }
 
+    async disconnect() {
+      await this.client.close(() => {
+          console.log("VartaFetcher connection closed.");
+      });
+    }
+
     async readRegister(register) {
         const data = (await this.client.readHoldingRegisters(register.address, register.length)).data;
         return register.convertData(data);
