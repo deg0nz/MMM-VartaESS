@@ -83,9 +83,10 @@ class VartaFetcher extends EventEmitter {
     async readData() {
         try {
             const batteryState = await this.readRegister(Registers.STATE);
+            const batteryStateString = this.getBatteryStateString(batteryState);
 
             const data = {
-                state: this.getBatteryStateString(batteryState),
+                state: batteryStateString,
                 soc: await this.readRegister(Registers.SOC),
                 gridPower: await this.readRegister(Registers.GRID_POWER),
                 activePower: await this.readRegister(Registers.ACTIVE_POWER),
