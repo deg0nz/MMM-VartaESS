@@ -7,45 +7,44 @@
  */
 
 const NodeHelper = require("node_helper");
-const VartaFetcher = require("./VartaFetcher");
+const VartaFetcher = require("./VartaFetcher").VartaFetcher;
 
 const BatteryState = {
-    BUSY: 0,    // e.g. Booting
-    RUN: 1,     // ready to charge/discharge
+    BUSY: 0, // e.g. Booting
+    RUN: 1, // ready to charge/discharge
     CHARGE: 2,
     DISCHARGE: 3,
     STANDBY: 4,
     ERROR: 5,
     PASSIVE: 6, // Service
-    ISLANDING: 7
-}
+    ISLANDING: 7,
+};
 
 module.exports = NodeHelper.create({
-    initialize: async function(config) {
-        this.fetcher = new VartaFetcher(config);
-        await this.fetcher.connect();
-        this.sendSocketNotification("MMM-VartaESS_INITIALIZED");
-    },
+    initialize: async function (config) {
+        if (typeof this.fetcher === "undefined") {
+            this.fetcher = new VartaFetcher(config);
 
-    fetchData: async function() {
-        if(typeof this.fetcher === "undefined")
-            return;
+            this.fetcher.on("DATA", (data) => {
+                const processedData = this.processData(data);
+                this.sendSocketNotification("MMM-VartaESS_DATA", processedData);
+            });
 
-        try {
-            const data = await this.fetcher.fetch();
-            const processedData = this.processData(data);
-            this.sendSocketNotification("MMM-VartaESS_DATA", processedData);        
-        } catch (error) {
-            this.sendSocketNotification("MMM-VartaESS_FETCHER_ERROR", error.message);
+            this.fetcher.on("ERROR", (error_string) => {
+                this.sendSocketNotification("MMM-VartaESS_ERROR", error_string);
+            });
+
+            this.fetcher.run();
+            this.sendSocketNotification("MMM-VartaESS_INITIALIZED");
         }
     },
 
-    processData: function(data) {
-        data.state = this.getBatteryStateString(data.state)
+    processData: function (data) {
+        data.state = this.getBatteryStateString(data.state);
         return data;
     },
 
-    getBatteryStateString: function(state) {
+    getBatteryStateString: function (state) {
         switch (state) {
             case BatteryState.BUSY:
                 return "BATTERY_BUSY";
@@ -68,13 +67,13 @@ module.exports = NodeHelper.create({
         }
     },
 
-	socketNotificationReceived: function(notification, payload) {
-		if (notification === "MMM-VartaESS_INIT") {
-            this.initialize(payload);
-		}
+    stop() {
+        this.fetcher.disconnect();
+    },
 
-        if(notification === "MMM-VartaESS_FETCH_DATA") {
-            this.fetchData();
+    socketNotificationReceived: function (notification, payload) {
+        if (notification === "MMM-VartaESS_INIT") {
+            this.initialize(payload);
         }
-	},
+    },
 });

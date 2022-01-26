@@ -17,6 +17,7 @@
   "BATTERY_PASSIVE": "Service",
   "BATTERY_ISLANDING": "Islanding",
   "BATTERY_UNKOWN": "Unknown",
-  "ERROR_NOT_CONNECTED": "No connection to energy storage",
-  "ERROR_READ": "Error while reading data"
+  "ERROR_NOT_CONNECTED": "No connection to ESS",
+  "MODBUS_READ_ERROR": "Read error",
+  "MODBUS_CONNECT_ERROR": "Connection error"
 }

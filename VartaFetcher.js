@@ -1,4 +1,5 @@
 "use strict";
+const EventEmitter = require("events");
 const ModbusRTU = require("modbus-serial");
 const Register = require("./Register").Register;
 const DataType = require("./Register").DataType;
@@ -13,28 +14,54 @@ const Registers = {
     ACTIVE_POWER: new Register(1066, 1, DataType.SINT16),
 };
 
-class VartaFetcher {
+const State = {
+    INIT: "MODBUS_INIT",
+    IDLE: "MODBUS_IDLE",
+    NEXT: "MODBUS_NEXT",
+    READ_SUCCESS: "MODBUS_READ_SUCCESS",
+    READ_ERROR: "MODBUS_READ_ERROR",
+    CONNECT_SUCCESS: "MODBUS_CONNECT_SUCCESS",
+    CONNECT_ERROR: "MODBUS_CONNECT_ERROR",
+};
+
+class VartaFetcher extends EventEmitter {
     constructor(config) {
-        this.client = new ModbusRTU();
+        super();
+        this.timeout = 1000;
+        this.updateInterval = config.updateInterval;
+        this.clientId = config.clientId;
         this.port = config.port;
         this.ip = config.ip;
-        this.clientId = config.clientId;
-        this.timeout = 2000;
+
+        this.client = new ModbusRTU();
+        this.client.setID(this.clientId);
+        this.client.setTimeout(this.timeout);
+
+        this.state = State.INIT;
     }
 
     async connect() {
         try {
-            await this.client.close(() => {
-                this.log(`Client ID ${this.clientId}) closed connection.`);
-            });
-            this.client.setID(this.clientId);
-            this.client.setTimeout(this.timeout);
+            await this.disconnect();
+
             await this.client.connectTCP(this.ip, { port: this.port });
-            this.log(`Connected with client ID: ${this.clientId}).`);
+
+            this.state = State.CONNECT_SUCCESS;
+
+            this.log(`Connected.`);
         } catch (error) {
-            this.log("Connection error. Trying to reconnect on next fetch.");
+            this.state = State.CONNECT_ERROR;
+            this.emit("ERROR", State.CONNECT_ERROR);
+
+            this.log(`Connection error.`);
             console.log(error);
         }
+    }
+
+    async disconnect() {
+        await this.client.close(() => {
+            console.log("VartaFetcher connection closed.");
+        });
     }
 
     async readRegister(register) {
@@ -42,7 +69,7 @@ class VartaFetcher {
         return register.convertData(data);
     }
 
-    async fetch() {
+    async readData() {
         try {
             const data = {
                 state: await this.readRegister(Registers.STATE),
@@ -51,24 +78,65 @@ class VartaFetcher {
                 activePower: await this.readRegister(Registers.ACTIVE_POWER),
             };
 
-            return data;
+            this.emit("DATA", data);
+            this.state = State.READ_SUCCESS;
+
+            // this.log("Successfully read modbus data.");
         } catch (error) {
-            if(!this.client.isOpen) {
-                await this.connect();
+            this.state = State.READ_ERROR;
+            this.emit("ERROR", State.READ_ERROR);
 
-                throw new Error("ERROR_NOT_CONNECTED");
-            }
-
-            this.log("Read error.");
-            console.log(error)
-
-            throw new Error("ERROR_READ");
+            this.log("Modbus read error:");
+            this.log(JSON.stringify(error));
         }
     }
 
+    async run() {
+        // let nextAction;
+
+        switch (this.state) {
+            case State.INIT:
+                await this.connect();
+                break;
+
+            case State.NEXT:
+                await this.readData();
+                break;
+
+            case State.CONNECT_SUCCESS:
+                await this.readData();
+                break;
+
+            case State.CONNECT_ERROR:
+                await this.connect();
+                break;
+
+            case State.READ_SUCCESS:
+                await this.readData();
+                break;
+
+            case State.READ_ERROR:
+                if (this.client.isOpen) {
+                    this.state = State.NEXT;
+                } else {
+                    await this.connect();
+                }
+                break;
+
+            default:
+            // nothing to do, keep scanning until actionable case
+        }
+
+        setTimeout(() => {
+            this.run();
+        }, this.updateInterval);
+    }
+
     log(msg) {
-        console.log(`[Varta Data Fetcher] ${msg}`);
+        console.log(`[VartaESS Data Fetcher (ID: ${this.clientId})] ${msg}`);
     }
 }
 
-module.exports = VartaFetcher;
+module.exports = {
+    VartaFetcher,
+};

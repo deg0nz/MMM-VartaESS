@@ -9,217 +9,204 @@
  */
 
 Module.register("MMM-VartaESS", {
-  defaults: {
-    name: "MMM-VartaESS",
-    header: "Energy Storage",
-    hidden: false,
-    ip: "192.168.200.195",
-    port: 502,
-    clientId: 10,
-    updateInterval: 3000,
-    width: 250,
-    showBatteryDisplay: true,
-    colors: true,
-    wattConversionOptions: {
-      enabled: true,
-      threshold: 1200,
-      numDecimalDigits: 2,
+    defaults: {
+        name: "MMM-VartaESS",
+        header: "Energy Storage",
+        hidden: false,
+        ip: "192.168.0.55",
+        port: 502,
+        clientId: 10,
+        updateInterval: 3000,
+        width: 250,
+        showBatteryDisplay: true,
+        colors: true,
+        wattConversionOptions: {
+            enabled: true,
+            threshold: 1200,
+            numDecimalDigits: 2,
+        },
+        broadcastBatteryPower: false,
+        broadcastGridPower: false,
     },
-    broadcastBatteryPower: false,
-    broadcastGridPower: false,
-  },
 
-  requiresVersion: "2.1.0", // Required version of MagicMirror
+    requiresVersion: "2.1.0", // Required version of MagicMirror
 
-  start: function () {
-    this.data.header = this.config.header;
-    this.currentData = null;
-    this.loaded = false;
-    this.error = {
-      active: false,
-      message: ""
-    }
+    start: function () {
+        this.data.header = this.config.header;
+        this.currentData = null;
+        this.scheduleTimer = null;
+        this.loaded = false;
+        this.error = null;
 
-    this.sendSocketNotification("MMM-VartaESS_INIT", this.config);
+        this.sendSocketNotification("MMM-VartaESS_INIT", this.config);
 
-    Log.info("MMM-VartaESS started.");
-  },
+        Log.info("MMM-VartaESS started.");
+    },
 
-  scheduleUpdate: function () {
-    setInterval(() => {
-        if(this.loaded) {
-            this.sendSocketNotification("MMM-VartaESS_FETCH_DATA");
+    getDom: function () {
+        // create element wrapper for show into the module
+        const wrapper = document.createElement("div");
+        wrapper.id = "vartaess-wrapper";
+        wrapper.style.width = `${this.config.width}px`;
+
+        if (this.currentData === null && !this.loaded) {
+            wrapper.className = "small light dimmed";
+            wrapper.innerHTML = `${this.translate("LOADING")}...`;
+            return wrapper;
         }
-    }, this.config.updateInterval);
-  },
 
-  getDom: function () {
-    // create element wrapper for show into the module
-    const wrapper = document.createElement("div");
-    wrapper.id = "vartaess-wrapper";
-    wrapper.style.width = `${this.config.width}px`;
+        if (this.error !== null && !this.loaded) {
+            wrapper.className = "small light dimmed";
+            wrapper.innerHTML = `${this.translate(this.error)}...`;
+            return wrapper;
+        }
 
-    if (this.currentData === null && !this.loaded) {
-      wrapper.className = "small light dimmed";
-      wrapper.innerHTML = `${this.translate("LOADING")}...`;
-      return wrapper;
-    }
+        if (this.config.showBatteryDisplay) {
+            const batteryDisplay = this.getBatteryDisplay();
+            wrapper.appendChild(batteryDisplay);
+        }
 
-    if (this.currentData === null && this.error.active) {
-      wrapper.className = "small light dimmed";
-      wrapper.innerHTML = `${this.translate(this.error.message)}...`;
-      return wrapper;
-    }
+        // Table for displaying Values
+        const tableWrapper = document.createElement("div");
+        tableWrapper.id = "table-wrapper";
+        const table = this.generateDataTable();
+        tableWrapper.appendChild(table);
 
-    if (this.config.showBatteryDisplay) {
-      const batteryDisplay = this.getBatteryDisplay();
-      wrapper.appendChild(batteryDisplay);
-    }
+        wrapper.appendChild(tableWrapper);
 
-    // Table for displaying Values
-    const tableWrapper = document.createElement("div");
-    tableWrapper.id = "table-wrapper";
-    const table = this.generateDataTable();
-    tableWrapper.appendChild(table);
+        return wrapper;
+    },
 
-    wrapper.appendChild(tableWrapper);
+    generateDataTable: function () {
+        const table = document.createElement("table");
 
-    return wrapper;
-  },
+        const stateDescription = `${this.translate("STATE")}:`;
+        let stateValue = this.translate(this.currentData.state);
+        if (this.error !== null) {
+            stateValue = this.translate(this.error);
+        }
+        this.appendTableRow(stateDescription, stateValue, table);
 
-  generateDataTable: function () {
-    const table = document.createElement("table");
+        const socDescription = `${this.translate("CHARGE")}:`;
+        const socValue = `${this.currentData.soc} %`;
+        this.appendTableRow(socDescription, socValue, table);
 
-    const stateDescription = `${this.translate("STATE")}:`;
-    let stateValue = this.translate(this.currentData.state);
-    if(this.error.active) {
-      stateValue = this.translate(this.error.message);
-    }
-    this.appendTableRow(stateDescription, stateValue, table);
+        const gridPowerDescription = `${this.translate("GRID")}: `;
+        const gpValue = this.currentData.gridPower;
+        const gridPowerValue = `${this.getWattString(Math.abs(gpValue))} (${
+            gpValue < 0 ? this.translate("CONSUMPTION_FROM_GRID") : this.translate("BACKFEED_TO_GRID")
+        })`;
+        this.appendTableRow(gridPowerDescription, gridPowerValue, table);
 
-    const socDescription = `${this.translate("CHARGE")}:`;
-    const socValue = `${this.currentData.soc} %`;
-    this.appendTableRow(socDescription, socValue, table);
+        const activePowerDescription = `${this.translate("BATTERY")}:`;
+        let batteryChargingStateLabel = "";
+        const apValue = this.currentData.activePower;
+        if (apValue !== 0) {
+            batteryChargingStateLabel = ` (${
+                apValue < 0 ? this.translate("BATTERY_DISCHARGE") : this.translate("BATTERY_CHARGE")
+            })`;
+        }
+        const activePowerValue = `${this.getWattString(Math.abs(apValue))}${batteryChargingStateLabel}`;
+        this.appendTableRow(activePowerDescription, activePowerValue, table);
 
-    const gridPowerDescription = `${this.translate("GRID")}: `;
-    const gpValue = this.currentData.gridPower;
-    const gridPowerValue = `${this.getWattString(Math.abs(gpValue))} (${
-      gpValue < 0 ? this.translate("CONSUMPTION_FROM_GRID") : this.translate("BACKFEED_TO_GRID")
-    })`;
-    this.appendTableRow(gridPowerDescription, gridPowerValue, table);
+        return table;
+    },
 
-    const activePowerDescription = `${this.translate("BATTERY")}:`;
-    let batteryChargingStateLabel = "";
-    const apValue = this.currentData.activePower;
-    if (apValue !== 0) {
-      batteryChargingStateLabel = ` (${
-        apValue < 0 ? this.translate("BATTERY_DISCHARGE") : this.translate("BATTERY_CHARGE")
-      })`;
-    }
-    const activePowerValue = `${this.getWattString(Math.abs(apValue))}${batteryChargingStateLabel}`;
-    this.appendTableRow(activePowerDescription, activePowerValue, table);
+    appendTableRow: function (description, value, table) {
+        const row = document.createElement("tr");
 
-    return table;
-  },
+        const descriptionColumn = document.createElement("td");
+        descriptionColumn.textContent = description;
+        row.appendChild(descriptionColumn);
 
-  appendTableRow: function (description, value, table) {
-    const row = document.createElement("tr");
+        const valueColumn = document.createElement("td");
+        valueColumn.textContent = value;
+        row.appendChild(valueColumn);
 
-    const descriptionColumn = document.createElement("td");
-    descriptionColumn.textContent = description;
-    row.appendChild(descriptionColumn);
+        table.appendChild(row);
+    },
 
-    const valueColumn = document.createElement("td");
-    valueColumn.textContent = value;
-    row.appendChild(valueColumn);
+    getBatteryDisplay: function () {
+        const batteryWrapper = document.createElement("div");
+        batteryWrapper.id = "battery-wrapper";
+        // Battery should have 85% of module width
+        const wrapperWidth = Math.round(this.config.width * 0.85);
+        batteryWrapper.style.width = `${wrapperWidth}px`;
 
-    table.appendChild(row);
-  },
+        const batteryState = document.createElement("div");
+        batteryState.id = "battery-state";
 
-  getBatteryDisplay: function () {
-    const batteryWrapper = document.createElement("div");
-    batteryWrapper.id = "battery-wrapper";
-    // Battery should have 85% of module width
-    const wrapperWidth = Math.round(this.config.width * 0.85);
-    batteryWrapper.style.width = `${wrapperWidth}px`;
+        const soc = this.currentData.soc;
 
-    const batteryState = document.createElement("div");
-    batteryState.id = "battery-state";
+        if (this.config.colors) {
+            if (soc < 25) {
+                batteryState.classList.add("battery-state-red");
+            } else if (soc < 75) {
+                batteryState.classList.add("battery-state-yellow");
+            } else {
+                batteryState.classList.add("battery-state-green");
+            }
+        }
 
-    const soc = this.currentData.soc;
+        // Internal display should also narrower than battery to preserve internal border
+        // Calculation from right: 8px "battery nose" + 4px border + 5px internal border = 17px
+        const maxWidth = wrapperWidth - 18; // Dunno, why 18 seems to look light. 1px got lost somewhere, maybe while rounding
+        const factor = soc / 100;
+        const width = Math.round(maxWidth * factor);
+        batteryState.style.width = `${width}px`;
 
-    if(this.config.colors) {
-      if(soc < 25) {
-        batteryState.classList.add("battery-state-red");
-      } else if(soc < 75) {
-        batteryState.classList.add("battery-state-yellow");
-      } else {
-        batteryState.classList.add("battery-state-green");
-      }
-    }
+        // We  will leave this here for debugging
+        // Log.info(`Module width: ${this.config.width} | wrapper width: ${wrapperWidth} | width: ${width} | maxWidth: ${maxWidth} | factor: ${factor}`);
 
-    // Internal display should also narrower than battery to preserve internal border
-    // Calculation from right: 8px "battery nose" + 4px border + 5px internal border = 17px
-    const maxWidth = wrapperWidth - 18; // Dunno, why 18 seems to look light. 1px got lost somewhere, maybe while rounding
-    const factor = soc / 100;
-    const width = Math.round(maxWidth * factor);
-    batteryState.style.width = `${width}px`;
+        batteryWrapper.appendChild(batteryState);
 
-    // We  will leave this here for debugging
-    // Log.info(`Module width: ${this.config.width} | wrapper width: ${wrapperWidth} | width: ${width} | maxWidth: ${maxWidth} | factor: ${factor}`);
+        return batteryWrapper;
+    },
 
-    batteryWrapper.appendChild(batteryState);
+    getWattString: function (value) {
+        const wattConversionOptions = this.config.wattConversionOptions;
+        if (wattConversionOptions.enabled && value > wattConversionOptions.threshold) {
+            return `${(value / 1000).toFixed(wattConversionOptions.numDecimalDigits)} kW`;
+        }
 
-    return batteryWrapper;
-  },
+        return `${value} W`;
+    },
 
-  getWattString: function (value) {
-    const wattConversionOptions = this.config.wattConversionOptions;
-    if (wattConversionOptions.enabled && value > wattConversionOptions.threshold) {
-      return `${(value / 1000).toFixed(wattConversionOptions.numDecimalDigits)} kW`;
-    }
+    getStyles: function () {
+        return ["MMM-VartaESS.css"];
+    },
 
-    return `${value} W`;
-  },
+    // Load translations files
+    getTranslations: function () {
+        return {
+            en: "translations/en.json",
+            de: "translations/de.json",
+        };
+    },
 
-  getStyles: function () {
-    return ["MMM-VartaESS.css"];
-  },
+    // socketNotificationReceived from helper
+    socketNotificationReceived: function (notification, payload) {
+        if (notification === "MMM-VartaESS_INITIALIZED") {
+            this.loaded = true;
+        }
 
-  // Load translations files
-  getTranslations: function () {
-    return {
-      en: "translations/en.json",
-      de: "translations/de.json",
-    };
-  },
+        if (notification === "MMM-VartaESS_ERROR") {
+            this.error = payload;
+            this.updateDom();
+        }
 
-  // socketNotificationReceived from helper
-  socketNotificationReceived: function (notification, payload) {
-    if (notification === "MMM-VartaESS_INITIALIZED") {
-      this.loaded = true;
-      this.scheduleUpdate();
-    }
+        if (notification === "MMM-VartaESS_DATA") {
+            if (this.config.broadcastBatteryPower) {
+                this.sendNotification("MMM-EnergyMonitor_ENERGY_STORAGE_POWER_UPDATE", payload.activePower);
+            }
 
-    if (notification === "MMM-VartaESS_FETCHER_ERROR") {
-      this.error.active = true;
-      this.error.message = payload;
-    }
+            if (this.config.broadcastGridPower) {
+                this.sendNotification("MMM-EnergyMonitor_GRID_POWER_UPDATE", payload.gridPower);
+            }
 
-    if (notification === "MMM-VartaESS_DATA") {
-      this.error.active = false;
-      this.error.message = "";
-
-      if(this.config.broadcastBatteryPower) {
-        this.sendNotification("MMM-EnergyMonitor_ENERGY_STORAGE_POWER_UPDATE", payload.activePower);
-      }
-
-      if(this.config.broadcastGridPower) {
-        this.sendNotification("MMM-EnergyMonitor_GRID_POWER_UPDATE", payload.gridPower);
-      }
-
-      this.currentData = payload;
-      this.updateDom();
-    }
-  },
+            this.error = null;
+            this.currentData = payload;
+            this.updateDom();
+        }
+    },
 });
