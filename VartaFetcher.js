@@ -81,12 +81,12 @@ class VartaFetcher extends EventEmitter {
             this.emit("DATA", data);
             this.state = State.READ_SUCCESS;
 
-            this.log("Successfully read modbus data.");
+            // this.log("Successfully read modbus data.");
         } catch (error) {
             this.state = State.READ_ERROR;
             this.emit("ERROR", State.READ_ERROR);
 
-            this.log("Modbus read error");
+            this.log("Modbus read error:");
             this.log(JSON.stringify(error));
         }
     }
@@ -133,7 +133,7 @@ class VartaFetcher extends EventEmitter {
     }
 
     log(msg) {
-        console.log(`[Varta Data Fetcher (ID: ${this.clientId})] ${msg}`);
+        console.log(`[VartaESS Data Fetcher (ID: ${this.clientId})] ${msg}`);
     }
 }
 
