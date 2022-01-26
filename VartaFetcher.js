@@ -1,5 +1,5 @@
 "use strict";
-const EventEmitter = require('events');
+const EventEmitter = require("events");
 const ModbusRTU = require("modbus-serial");
 const Register = require("./Register").Register;
 const DataType = require("./Register").DataType;
@@ -21,8 +21,8 @@ const State = {
     READ_SUCCESS: "MODBUS_READ_SUCCESS",
     READ_ERROR: "MODBUS_READ_ERROR",
     CONNECT_SUCCESS: "MODBUS_CONNECT_SUCCESS",
-    CONNECT_ERROR: "MODBUS_CONNECT_ERROR"
-}
+    CONNECT_ERROR: "MODBUS_CONNECT_ERROR",
+};
 
 class VartaFetcher extends EventEmitter {
     constructor(config) {
@@ -37,7 +37,6 @@ class VartaFetcher extends EventEmitter {
         this.client.setID(this.clientId);
         this.client.setTimeout(this.timeout);
 
-
         this.state = State.INIT;
     }
 
@@ -46,13 +45,13 @@ class VartaFetcher extends EventEmitter {
             await this.disconnect();
 
             await this.client.connectTCP(this.ip, { port: this.port });
-            
+
             this.state = State.CONNECT_SUCCESS;
 
             this.log(`Connected.`);
         } catch (error) {
             this.state = State.CONNECT_ERROR;
-            this.emit("ERROR", State.CONNECT_ERROR)
+            this.emit("ERROR", State.CONNECT_ERROR);
 
             this.log(`Connection error.`);
             console.log(error);
@@ -83,7 +82,6 @@ class VartaFetcher extends EventEmitter {
             this.state = State.READ_SUCCESS;
 
             this.log("Successfully read modbus data.");
-
         } catch (error) {
             this.state = State.READ_ERROR;
             this.emit("ERROR", State.READ_ERROR);
@@ -100,33 +98,33 @@ class VartaFetcher extends EventEmitter {
             case State.INIT:
                 await this.connect();
                 break;
-    
+
             case State.NEXT:
                 await this.readData();
                 break;
-    
+
             case State.CONNECT_SUCCESS:
                 await this.readData();
                 break;
-    
+
             case State.CONNECT_ERROR:
                 await this.connect();
                 break;
-    
+
             case State.READ_SUCCESS:
                 await this.readData();
                 break;
-    
+
             case State.READ_ERROR:
-                if (this.client.isOpen)  { 
-                    this.state = State.NEXT;  
-                } else { 
-                    await this.connect(); 
+                if (this.client.isOpen) {
+                    this.state = State.NEXT;
+                } else {
+                    await this.connect();
                 }
                 break;
-    
+
             default:
-                // nothing to do, keep scanning until actionable case
+            // nothing to do, keep scanning until actionable case
         }
 
         setTimeout(() => {
@@ -140,5 +138,5 @@ class VartaFetcher extends EventEmitter {
 }
 
 module.exports = {
-    VartaFetcher
-}
+    VartaFetcher,
+};
