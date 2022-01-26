@@ -24,6 +24,17 @@ const State = {
     CONNECT_ERROR: "MODBUS_CONNECT_ERROR",
 };
 
+const BatteryState = {
+    BUSY: 0, // e.g. Booting
+    RUN: 1, // ready to charge/discharge
+    CHARGE: 2,
+    DISCHARGE: 3,
+    STANDBY: 4,
+    ERROR: 5,
+    PASSIVE: 6, // Service
+    ISLANDING: 7,
+};
+
 class VartaFetcher extends EventEmitter {
     constructor(config) {
         super();
@@ -58,7 +69,6 @@ class VartaFetcher extends EventEmitter {
         }
     }
 
-
     async #readRegister(register) {
         const data = (await this.client.readHoldingRegisters(register.address, register.length)).data;
         return register.convertData(data);
@@ -66,8 +76,10 @@ class VartaFetcher extends EventEmitter {
 
     async #readData() {
         try {
+            const batteryState = await this.#readRegister(Registers.STATE);
+
             const data = {
-                state: await this.#readRegister(Registers.STATE),
+                state: this.#getBatteryStateString(batteryState),
                 soc: await this.#readRegister(Registers.SOC),
                 gridPower: await this.#readRegister(Registers.GRID_POWER),
                 activePower: await this.#readRegister(Registers.ACTIVE_POWER),
@@ -86,14 +98,37 @@ class VartaFetcher extends EventEmitter {
         }
     }
 
+    #getBatteryStateString(state) {
+        switch (state) {
+            case BatteryState.BUSY:
+                return "BATTERY_BUSY";
+            case BatteryState.RUN:
+                return "BATTERY_RUN";
+            case BatteryState.CHARGE:
+                return "BATTERY_CHARGE";
+            case BatteryState.DISCHARGE:
+                return "BATTERY_DISCHARGE";
+            case BatteryState.STANDBY:
+                return "BATTERY_STANDBY";
+            case BatteryState.ERROR:
+                return "BATTERY_ERROR";
+            case BatteryState.PASSIVE:
+                return "BATTERY_PASSIVE";
+            case BatteryState.ISLANDING:
+                return "BATTERY_ISLANDING";
+            default:
+                return "BATTERY_UNKOWN";
+        }
+    }
+
     #log(msg) {
-      console.log(`[VartaESS Data Fetcher (ID: ${this.clientId})] ${msg}`);
+        console.log(`[VartaESS Data Fetcher (ID: ${this.clientId})] ${msg}`);
     }
 
     async disconnect() {
-      await this.client.close(() => {
-          console.log("VartaFetcher connection closed.");
-      });
+        await this.client.close(() => {
+            console.log("VartaFetcher connection closed.");
+        });
     }
 
     async run() {
