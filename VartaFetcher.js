@@ -92,8 +92,6 @@ class VartaFetcher extends EventEmitter {
                 activePower: await this.readRegister(Registers.ACTIVE_POWER),
             };
 
-            data.state = this.getBatteryStateString(data.state);
-
             this.emit("DATA", data);
             this.state = State.READ_SUCCESS;
 
