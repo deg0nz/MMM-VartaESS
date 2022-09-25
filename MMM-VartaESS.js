@@ -166,7 +166,7 @@ Module.register("MMM-VartaESS", {
     getWattString: function (value) {
         const wattConversionOptions = this.config.wattConversionOptions;
         if (wattConversionOptions.enabled && value > wattConversionOptions.threshold) {
-            return `${(value / 1000).toFixed(wattConversionOptions.numDecimalDigits)} kW`;
+            return `${(value / 1000).toFixed(wattConversionOptions.numDecimalDigits)} KW`;
         }
 
         return `${value} W`;
