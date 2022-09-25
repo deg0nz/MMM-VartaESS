@@ -1,6 +1,6 @@
 {
   "name": "mmm-vartaess",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "MagicMirror module to show information about Varta Energy Storage Systems",
   "main": "MMM-VartaESS.js",
   "scripts": {
