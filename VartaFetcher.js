@@ -70,26 +70,47 @@ class VartaFetcher extends EventEmitter {
     }
 
     async disconnect() {
-      await this.client.close(() => {
-          console.log("VartaFetcher connection closed.");
-      });
+        await new Promise((resolve) => {
+            this.client.close(() => {
+                console.log("VartaFetcher connection closed.");
+                resolve();
+            });
+        });
     }
 
-    async readRegister(register) {
-        const data = (await this.client.readHoldingRegisters(register.address, register.length)).data;
-        return register.convertData(data);
+    // Reads all given registers in a single Modbus request by covering the whole
+    // address range they span, then slices each register's value back out. This
+    // keeps `Registers` as the source of truth while doing just one round-trip.
+    async readRegisters(registers) {
+        const minAddress = Math.min(...registers.map((r) => r.address));
+        const maxAddress = Math.max(...registers.map((r) => r.address + r.length));
+        const totalLength = maxAddress - minAddress;
+
+        const raw = (await this.client.readHoldingRegisters(minAddress, totalLength)).data;
+
+        const values = new Map();
+        for (const register of registers) {
+            const offset = register.address - minAddress;
+            const slice = raw.slice(offset, offset + register.length);
+            values.set(register, register.convertData(slice));
+        }
+        return values;
     }
 
     async readData() {
         try {
-            const batteryState = await this.readRegister(Registers.STATE);
-            const batteryStateString = this.getBatteryStateString(batteryState);
+            const values = await this.readRegisters([
+                Registers.STATE,
+                Registers.SOC,
+                Registers.GRID_POWER,
+                Registers.ACTIVE_POWER,
+            ]);
 
             const data = {
-                state: batteryStateString,
-                soc: await this.readRegister(Registers.SOC),
-                gridPower: await this.readRegister(Registers.GRID_POWER),
-                activePower: await this.readRegister(Registers.ACTIVE_POWER),
+                state: this.getBatteryStateString(values.get(Registers.STATE)),
+                soc: values.get(Registers.SOC),
+                gridPower: values.get(Registers.GRID_POWER),
+                activePower: values.get(Registers.ACTIVE_POWER),
             };
 
             this.emit("DATA", data);
@@ -108,21 +129,12 @@ class VartaFetcher extends EventEmitter {
     async run() {
         switch (this.state) {
             case State.INIT:
-                await this.connect();
-                break;
-
-            case State.NEXT:
-                await this.readData();
-                break;
-
-            case State.CONNECT_SUCCESS:
-                await this.readData();
-                break;
-
             case State.CONNECT_ERROR:
                 await this.connect();
                 break;
 
+            case State.NEXT:
+            case State.CONNECT_SUCCESS:
             case State.READ_SUCCESS:
                 await this.readData();
                 break;
